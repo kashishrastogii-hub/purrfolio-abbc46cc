@@ -99,6 +99,7 @@ export class Room3D {
         this.scene.fog = new THREE.FogExp2(0x0a0d20, 0.03);
 
         this.camera = new THREE.PerspectiveCamera(46, w / h, 0.1, 60);
+        this.camera.layers.enable(1);
         this.basePos = CAM_POS.clone();
         this.baseTarget = CAM_TARGET.clone();
         this._fitView(w, h);
@@ -116,6 +117,22 @@ export class Room3D {
         this._buildDoor();
         this._buildDust();
         this._buildCat();
+        this._buildKittenLights();
+    }
+
+    _buildKittenLights() {
+        const key = new THREE.PointLight(0xfff2dd, 1.15, 2.2, 2);
+        key.position.set(DESK_CENTER_X + 0.45, 1.45, -1.2);
+        const warm = new THREE.PointLight(0xffc487, 0.4, 1.8, 2);
+        warm.position.set(0.1, 1.15, -2.35);
+        const fill = new THREE.HemisphereLight(0xfff1d9, 0x79573d, 1.3);
+        this.kittenLights = [key, warm, fill];
+        for (const light of [key, warm, fill]) {
+            light.layers.set(1);
+            this.scene.add(light);
+        }
+        // Existing room lights still shade the kitten; kitten lights never touch the room.
+        for (const light of [this.ambient, this.hemi, this.moon, this.lampLight, this.monitorLight, this.fill]) light.layers.enable(1);
     }
 
     _buildLights() {
@@ -768,16 +785,16 @@ export class Room3D {
         if (mode === "wrap") {
             for (let i = 0; i < 6; i++) {
                 const a = 0.55 - i * 0.5;
-                out.push([Math.cos(a) * 0.2, 0.045, Math.sin(a) * 0.19 + 0.02]);
+                out.push([Math.cos(a) * 0.19, 0.035, Math.sin(a) * 0.19 + 0.02]);
             }
         } else if (mode === "up") {
             for (let i = 0; i < 6; i++)
-                out.push([0.02, 0.17 + i * 0.047, 0.21 - i * 0.014 + Math.sin(t * 3 + i * 0.8) * 0.007]);
+                out.push([0.025, 0.095 + i * 0.055, 0.16 + i * 0.019 + Math.sin(t * 3 + i * 0.8) * 0.007]);
         } else {
             const f = this.poseName === "happy" ? 6 : 1.6;
             const amp = this.poseName === "happy" ? 0.032 : 0.012;
             for (let i = 0; i < 6; i++)
-                out.push([0.12 + Math.sin(t * f + i * 0.65) * amp * (0.4 + i / 4), 0.16 - i * 0.047, 0.3 + i * 0.012]);
+                out.push([0.045 + Math.sin(t * f + i * 0.65) * amp * (0.4 + i / 4), 0.095 - i * 0.047, 0.15 + i * 0.047]);
         }
         return out;
     }
@@ -813,7 +830,7 @@ export class Room3D {
             cur.bodyPos[1],
             cur.bodyPos[2] + Math.cos(t * 39) * vib
         );
-        const breath = 1 + Math.sin(t * 2.3) * cur.breath;
+        const breath = 1 + Math.sin(t * (this.poseName === "curled" ? 1.4 : 2.3)) * cur.breath;
         P.body.scale.set(cur.bodyScale[0], cur.bodyScale[1] * breath, cur.bodyScale[2]);
         P.body.rotation.x = cur.bodyRotX;
 
@@ -831,6 +848,9 @@ export class Room3D {
         const eyeY = Math.max(cur.eye * eyeOpen, 0.06);
         P.eyeL.scale.y = eyeY;
         P.eyeR.scale.y = eyeY;
+        P.eyeL.visible = cur.eye > 0.12;
+        P.eyeR.visible = cur.eye > 0.12;
+        P.closedEyes.visible = cur.eye <= 0.12;
         const gs = eyeY > 0.4 ? 1 : 0.01;
         P.glintL.scale.setScalar(gs);
         P.glintR.scale.setScalar(gs);
@@ -866,6 +886,7 @@ export class Room3D {
             P.tailSegs[i].position.set(p[0], p[1], p[2]);
         });
         this._tailPrevMode = cur.tail;
+        P.updateTail();
 
         const lk = 1 - Math.exp(-1.8 * dt);
         this.ambient.intensity += (this.curTargets.ambient - this.ambient.intensity) * lk;
@@ -930,7 +951,18 @@ export class Room3D {
             this.anchorEl.style.transform = `translate3d(${ax.toFixed(1)}px, ${ay.toFixed(1)}px, 0)`;
         }
 
+        // Three.js light layers filter against the camera, not each mesh.
+        // Render the room first and the kitten into the same depth buffer.
+        this.camera.layers.set(0);
         this.renderer.render(this.scene, this.camera);
+        const background = this.scene.background;
+        this.scene.background = null;
+        this.camera.layers.set(1);
+        this.renderer.autoClear = false;
+        this.renderer.render(this.scene, this.camera);
+        this.renderer.autoClear = true;
+        this.scene.background = background;
+        this.camera.layers.enable(0);
         if (this.lampReady) this.container.dataset.sceneReady = "1";
     }
 }
