@@ -13,12 +13,14 @@ const KEYS = [];
 for (const row of ROWS) {
     let x = X0;
     for (const [w, label] of row.keys) {
-        if (label !== "gap") KEYS.push({ x, y: row.y, w: w * U - GAP, h: row.h, label, fs: row.fs ?? (label.length > 1 ? 9 : 12), mod: label.length > 1 });
+        if (label !== "gap") KEYS.push({ x, y: row.y, w: w * U - GAP, h: row.h, label, fs: row.fs ?? (label.length > 5 ? 7.5 : label.length > 1 ? 9 : 12), mod: label.length > 1 });
         x += w * U;
     }
 }
-/* arrow cluster to the right of the main block */
+/* navigation cluster and arrow cluster to the right of the main block */
 const AX = X0 + 15 * U + 7;
+[["Ins", 27], ["Home", 27], ["PgUp", 27], ["Del", 55], ["End", 55], ["PgDn", 55]].forEach(([label, y], i) =>
+    KEYS.push({ x: AX + (i % 3) * U, y, w: U - GAP, h: 25, label, fs: 8, mod: false }));
 KEYS.push({ x: AX + U, y: 111, w: U - GAP, h: 25, label: "↑", fs: 10, mod: false });
 KEYS.push({ x: AX, y: 139, w: U - GAP, h: 25, label: "←", fs: 10, mod: false });
 KEYS.push({ x: AX + U, y: 139, w: U - GAP, h: 25, label: "↓", fs: 10, mod: false });
