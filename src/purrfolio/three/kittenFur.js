@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 // Deterministic grooming: painted strands, not image noise or post-processing.
-const PALETTE = { coat: "#aa8057", light: "#dec6a0", stripe: "#57402c" };
+const PALETTE = { coat: "#e0863f", light: "#f6e7c8", stripe: "#b25a1e" };
 export function coatTexture(part = "body") {
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = 1024;
@@ -9,10 +9,10 @@ export function coatTexture(part = "body") {
     ctx.fillStyle = PALETTE.coat;
     ctx.fillRect(0, 0, 1024, 1024);
     const belly = ctx.createLinearGradient(0, 0, 0, 1024);
-    belly.addColorStop(0, "#8c6744");
+    belly.addColorStop(0, "#c96d2a");
     belly.addColorStop(0.48, PALETTE.coat);
     belly.addColorStop(0.77, PALETTE.light);
-    belly.addColorStop(1, "#eee0c7");
+    belly.addColorStop(1, "#f8ecd4");
     ctx.fillStyle = belly;
     ctx.fillRect(0, 0, 1024, 1024);
     ctx.strokeStyle = PALETTE.stripe;
@@ -35,7 +35,7 @@ export function coatTexture(part = "body") {
     for (let i = 0; i < 16000; i++) {
         const u = (i * 137.508) % 1024;
         const v = (i * 79.317) % 1024;
-        ctx.strokeStyle = i % 3 ? "rgba(247,228,193,0.14)" : "rgba(74,47,26,0.17)";
+        ctx.strokeStyle = i % 3 ? "rgba(255,232,200,0.16)" : "rgba(150,75,22,0.18)";
         ctx.beginPath();
         ctx.moveTo(u, v);
         ctx.lineTo(u + Math.sin(v * 0.009) * 3, v + 7);
@@ -55,7 +55,7 @@ export function furMaterial(texture) {
 export function groom(mesh, count = 1600, length = 0.01) {
     const geometry = new THREE.ConeGeometry(0.0007, 1, 3, 1);
     geometry.translate(0, 0.5, 0);
-    const material = new THREE.MeshStandardMaterial({ color: 0xb38e64, roughness: 1, side: THREE.DoubleSide });
+    const material = new THREE.MeshStandardMaterial({ color: 0xd08a4e, roughness: 1, side: THREE.DoubleSide });
     const strands = new THREE.InstancedMesh(geometry, material, count);
     const positions = mesh.geometry.attributes.position;
     const normals = mesh.geometry.attributes.normal;
@@ -71,7 +71,7 @@ export function groom(mesh, count = 1600, length = 0.01) {
         dummy.scale.set(1, length * (0.55 + (i % 11) / 16), 1);
         dummy.updateMatrix();
         strands.setMatrixAt(i, dummy.matrix);
-        tint.setHex(dummy.position.y < -0.02 ? 0xdcc5a1 : (i % 4 ? 0xb38e64 : 0x826040));
+        tint.setHex(dummy.position.y < -0.02 ? 0xf0dcba : (i % 4 ? 0xd08a4e : 0x9a5c26));
         strands.setColorAt(i, tint);
     }
     mesh.add(strands);
@@ -83,8 +83,8 @@ export function sculptedHead() {
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-        const cheek = 1 + 0.13 * Math.exp(-Math.pow((y + 0.03) / 0.045, 2));
-        pos.setXYZ(i, x * cheek, y * 0.91, z * (y > 0.02 ? 0.88 : 0.94));
+        const cheek = 1 + 0.19 * Math.exp(-Math.pow((y + 0.03) / 0.05, 2));
+        pos.setXYZ(i, x * cheek, y * 0.93, z * (y > 0.02 ? 0.88 : 0.94));
     }
     geo.computeVertexNormals();
     return geo;
@@ -92,11 +92,11 @@ export function sculptedHead() {
 
 export function earGeometry() {
     const shape = new THREE.Shape();
-    shape.moveTo(-0.04, 0);
-    shape.quadraticCurveTo(-0.024, 0.055, -0.012, 0.083);
-    shape.quadraticCurveTo(-0.004, 0.095, 0.003, 0.083);
-    shape.quadraticCurveTo(0.02, 0.035, 0.04, 0);
-    shape.quadraticCurveTo(0, -0.015, -0.04, 0);
+    shape.moveTo(-0.05, 0);
+    shape.quadraticCurveTo(-0.031, 0.075, -0.016, 0.115);
+    shape.quadraticCurveTo(-0.005, 0.133, 0.004, 0.115);
+    shape.quadraticCurveTo(0.026, 0.05, 0.05, 0);
+    shape.quadraticCurveTo(0, -0.018, -0.05, 0);
     const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.018, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.007, bevelThickness: 0.005, curveSegments: 10 });
     geo.translate(0, 0, -0.009);
     return geo;
@@ -127,12 +127,12 @@ export function makeFurryTail(material) {
     const curve = new THREE.CatmullRomCurve3(guides.map(g => g.position), false, "catmullrom", 0.45);
     const point = new THREE.Vector3(), tangent = new THREE.Vector3(), right = new THREE.Vector3(), normal = new THREE.Vector3();
     const axis = new THREE.Vector3(0, 1, 0);
-    const outer = new THREE.Mesh(geometry.clone(), new THREE.MeshStandardMaterial({ color: 0xb99165, transparent: true, opacity: 0.15, roughness: 1, depthWrite: false, side: THREE.BackSide }));
+    const outer = new THREE.Mesh(geometry.clone(), new THREE.MeshStandardMaterial({ color: 0xd99a5a, transparent: true, opacity: 0.15, roughness: 1, depthWrite: false, side: THREE.BackSide }));
     outer.frustumCulled = false;
     tail.add(outer);
     const strandGeo = new THREE.ConeGeometry(0.0008, 0.009, 3);
     strandGeo.translate(0, 0.0045, 0);
-    const strands = new THREE.InstancedMesh(strandGeo, new THREE.MeshStandardMaterial({ color: 0xc19b70, roughness: 1 }), 360);
+    const strands = new THREE.InstancedMesh(strandGeo, new THREE.MeshStandardMaterial({ color: 0xdda468, roughness: 1 }), 360);
     strands.frustumCulled = false;
     tail.add(strands);
     const strand = new THREE.Object3D();
