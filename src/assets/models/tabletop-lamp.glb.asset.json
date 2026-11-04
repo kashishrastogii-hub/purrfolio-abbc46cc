@@ -1,11 +1,11 @@
 {
-  "version": 1,
   "asset_id": "a3ab0cea-c41c-4c12-a0ee-5e2b58b72f93",
-  "project_id": "9a77b807-ac2d-488a-83e4-5ab2b3309113",
-  "url": "/__l5e/assets-v1/a3ab0cea-c41c-4c12-a0ee-5e2b58b72f93/tabletop-lamp.glb",
-  "r2_key": "a/v1/9a77b807-ac2d-488a-83e4-5ab2b3309113/a3ab0cea-c41c-4c12-a0ee-5e2b58b72f93/tabletop-lamp.glb",
-  "original_filename": "tabletop-lamp.glb",
-  "size": 5624,
   "content_type": "model/gltf-binary",
-  "created_at": "2026-11-04T08:01:52Z"
+  "created_at": "2026-11-04T08:01:52Z",
+  "original_filename": "tabletop-lamp.glb",
+  "project_id": "57edf73c-d302-4e71-a065-a4bb001544d1",
+  "r2_key": "a/v1/57edf73c-d302-4e71-a065-a4bb001544d1/a3ab0cea-c41c-4c12-a0ee-5e2b58b72f93/tabletop-lamp.glb",
+  "size": 5624,
+  "url": "/__l5e/assets-v1/a3ab0cea-c41c-4c12-a0ee-5e2b58b72f93/tabletop-lamp.glb",
+  "version": 1
 }
