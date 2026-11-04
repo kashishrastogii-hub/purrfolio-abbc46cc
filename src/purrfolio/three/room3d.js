@@ -99,6 +99,7 @@ export class Room3D {
         this.camera = new THREE.PerspectiveCamera(46, w / h, 0.1, 60);
         this.basePos = CAM_POS.clone();
         this.baseTarget = CAM_TARGET.clone();
+        this._fitView(w, h);
         this.camera.position.copy(this.basePos);
         this.camera.lookAt(this.baseTarget);
 
@@ -197,7 +198,9 @@ export class Room3D {
         // right wall (x=3.2)
         mkWall(0.12, 3, 4.6, 3.2, 1.5, -0.7);
         // matching left wall, meeting both the window wall and the floor
-        mkWall(0.12, 3, 4.6, -4.65, 1.5, -0.7);
+        const leftWall = mkWall(0.12, 3, 4.6, -4.65, 1.5, -0.7);
+        // Let moonlight enter the open room rather than shadowing the entire desk.
+        leftWall.castShadow = false;
 
         // window frame + glass + mullions
         const frameMat = std(0x6b4a2e, 0.8);
@@ -430,7 +433,7 @@ export class Room3D {
         this.lampGlow = glowSprite(0xff9a3c, 0.9, 0);
         this.lampGlow.position.set(0.045, 0.37, 0);
         g.add(this.lampGlow);
-        g.position.set(-0.12, 0.76, -2.5);
+        g.position.set(0.31, 0.76, -2.5);
         this.scene.add(g);
     }
 
@@ -609,6 +612,11 @@ export class Room3D {
     }
 
     /* ---------- events ---------- */
+    _fitView(w, h) {
+        const aspect = w / h;
+        const distanceScale = Math.max(1, 1.15 / aspect);
+        this.basePos.copy(CAM_TARGET).add(CAM_POS.clone().sub(CAM_TARGET).multiplyScalar(distanceScale));
+    }
     _bind() {
         this.ray = new THREE.Raycaster();
         this.ndc = new THREE.Vector2();
@@ -629,6 +637,7 @@ export class Room3D {
         this._onResize = () => {
             const w = this.container.clientWidth || window.innerWidth;
             const h = this.container.clientHeight || window.innerHeight;
+            this._fitView(w, h);
             this.camera.aspect = w / h;
             this.camera.updateProjectionMatrix();
             this.renderer.setSize(w, h);
