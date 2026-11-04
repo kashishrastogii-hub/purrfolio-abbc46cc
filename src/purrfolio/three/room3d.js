@@ -877,8 +877,8 @@ export class Room3D {
         P.jaw.scale.y = Math.max(jawTarget, 0.01);
 
         const flat = this.earsFlat ? 1 : 0;
-        P.earL.rotation.z += (-0.24 - cur.droop * 0.55 - flat * 1.15 - P.earL.rotation.z) * k;
-        P.earR.rotation.z += (0.24 + cur.droop * 0.55 + flat * 1.15 - P.earR.rotation.z) * k;
+        P.earL.rotation.z += (-0.24 - cur.droop * 0.35 - flat * 1.15 - P.earL.rotation.z) * k;
+        P.earR.rotation.z += (0.24 + cur.droop * 0.35 + flat * 1.15 - P.earR.rotation.z) * k;
         P.earL.rotation.x += ((flat ? -0.5 : 0) - P.earL.rotation.x) * k;
         P.earR.rotation.x += ((flat ? -0.5 : 0) - P.earR.rotation.x) * k;
 

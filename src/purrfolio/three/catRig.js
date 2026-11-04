@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { coatTexture, furMaterial, groom, sculptedHead, earGeometry, makeFurryTail } from "./kittenFur";
 
-const C = { fur: 0xd9823f, cream: 0xf6e7c8, pink: 0xf2a8b2, innerEar: 0xf2a8b2, nose: 0xe08e96, eye: 0x2f9e4f, pupil: 0x0d120d, bell: 0xf5c451, collar: 0x3fb3c9, mouth: 0x6b4630 };
+const C = { fur: 0xd9823f, cream: 0xf6e7c8, pink: 0xf2a8b2, innerEar: 0xefb0b6, nose: 0xe08e96, eye: 0x2f9e4f, pupil: 0x0d120d, bell: 0xf5c451, collar: 0x3fb3c9, mouth: 0x6b4630 };
 const std = (color, rough = 0.8) => new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0 });
 
 export function buildCat() {
