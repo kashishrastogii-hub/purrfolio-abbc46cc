@@ -235,7 +235,7 @@ body {
 .keyboard-face { fill: var(--keyboard-face); }
 .keyboard-key { fill: var(--keyboard-key); stroke: var(--keyboard-edge); stroke-width: 1; }
 .keyboard-letter { fill: var(--keyboard-ink); font: 12px "Fira Code",monospace; }
-.key-empty { opacity: 0.15; }
+.key-mod .keyboard-key { fill: #b4b7bd; }
 .keyboard-hold { animation: keyboard-stick 1.5s ease-out both; }
 @keyframes keyboard-stick {
     0% { transform: translate(-50%,-50%) scale(1.13,0.76) rotate(-23deg); }
@@ -253,21 +253,6 @@ body {
     80% { transform: translate(-42%,calc(-50% + 47dvh)) rotate(-9deg); }
     100% { transform: translate(-38%,calc(-50% + 130dvh)) rotate(-4deg); }
 }
-.loose-key { position: absolute; top: 30%; width: 26px; height: 24px; display: grid; place-items: center; background: var(--keyboard-key); color: var(--keyboard-ink); border: 2px solid var(--keyboard-edge); border-radius: 4px; font: 12px "Fira Code",monospace; box-shadow: 0 3px 2px var(--keyboard-shadow); }
-.loose-key-0 { left: 22%; }
-.loose-key-1 { left: 41%; animation-delay: 0.07s; }
-.loose-key-2 { left: 65%; animation-delay: 0.12s; }
-.loose-key-3 { left: 83%; animation-delay: 0.19s; }
-.keyboard-hold .loose-key { animation: key-bounce 1.5s ease-out both; }
-@keyframes key-bounce {
-    0% { transform: translate(0,0) rotate(0); }
-    20% { transform: translate(24px,-80px) rotate(90deg); }
-    55% { transform: translate(32px,130px) rotate(210deg); }
-    72% { transform: translate(40px,85px) rotate(245deg); }
-    100% { transform: translate(44px,170px) rotate(280deg); }
-}
-.keyboard-slide .loose-key { animation: key-slide 1.8s ease-in both; }
-@keyframes key-slide { from { transform: translate(44px,170px) rotate(280deg); } to { transform: translate(65px,330px) rotate(390deg); } }
 @media (prefers-reduced-motion: reduce) {
     .splat-shake { animation: none; }
     .keyboard-hold { animation: none; transform: translate(-50%,-50%) scale(1,0.89) rotate(-22deg); }
