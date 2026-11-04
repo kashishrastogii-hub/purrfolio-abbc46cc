@@ -240,7 +240,7 @@ export default function Experience() {
         <div className="app-bg">
             <div className="stage3d" data-testid="room-scene">
                 <Scene3D
-                    key={sceneVersion}
+                    key={`scene-${sceneVersion}`}
                     lit={lit}
                     monitorOn={monitorOn}
                     screenText={screenText}
@@ -255,7 +255,7 @@ export default function Experience() {
                     bubble={bubble}
                     onCatTap={wake}
                 />
-                <div key={flashKey} className={"flash" + (flashKey ? " flash-on" : "")} />
+                <div key={`flash-${flashKey}`} className={"flash" + (flashKey ? " flash-on" : "")} />
                 {caption === "hint" && (
                     <div className="chip" data-testid="caption-hint">
                         <PawPrint /> Tap the cat to wake it. Sound on.

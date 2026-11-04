@@ -35,7 +35,7 @@ describe("Cat interaction", () => {
         expect(captured.current['screenText']).toBe("H");
         await act(async () => { vi.advanceTimersByTime(130); });
         expect(captured.current['screenText']).toBe("Hi");
-        await act(async () => { vi.advanceTimersByTime(130 * 28); });
+        await act(async () => { vi.advanceTimersByTime(130 * 30); });
         expect(captured.current['screenText']).toBe("Hi I am Kashish. I am working on");
         expect(captured.current['frantic']).toBe(false);
         await act(async () => { vi.advanceTimersByTime(1000); });
