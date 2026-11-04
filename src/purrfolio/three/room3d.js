@@ -407,9 +407,9 @@ export class Room3D {
 
         /* keyboard */
         this.kb = new THREE.Group();
-        const kbBase = new THREE.Mesh(rbox(0.48, 0.035, 0.18, 0.015), std(0xe3d3b3, 0.6));
+        const kbBase = new THREE.Mesh(rbox(0.48, 0.035, 0.18, 0.015), std(0x9a9da3, 0.6));
         this.kb.add(kbBase);
-        const keyMat = std(0xc9b896, 0.65);
+        const keyMat = std(0xd4d6da, 0.65);
         const keyGeo = new THREE.BoxGeometry(0.028, 0.014, 0.028);
         const inst = new THREE.InstancedMesh(keyGeo, keyMat, 36);
         const m4 = new THREE.Matrix4();

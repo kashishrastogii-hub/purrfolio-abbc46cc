@@ -209,10 +209,10 @@ body {
     --glass-dark: rgba(10, 17, 24, 0.85);
     --glass-edge: rgba(223, 236, 240, 0.72);
     --glass-shard: rgba(223, 236, 240, 0.12);
-    --keyboard-face: #e3d3b3;
-    --keyboard-edge: #84765f;
-    --keyboard-key: #c9b896;
-    --keyboard-ink: #453c30;
+    --keyboard-face: #9a9da3;
+    --keyboard-edge: #4b4e54;
+    --keyboard-key: #d4d6da;
+    --keyboard-ink: #2c2e33;
     --keyboard-shadow: rgba(8, 9, 12, 0.5);
 }
 .glass-fracture-shadow { stroke: var(--glass-dark); stroke-width: 2.2; }
@@ -229,7 +229,7 @@ body {
     68% { transform: translate(-6px,4px); }
     84% { transform: translate(3px,-2px); }
 }
-.keyboard-splat { position: fixed; left: 50%; top: 43.5%; width: min(66vw,650px); aspect-ratio: 560 / 190; z-index: 25; pointer-events: none; }
+.keyboard-splat { position: fixed; left: 50%; top: 43.5%; width: min(118vw,1500px); aspect-ratio: 560 / 190; z-index: 25; pointer-events: none; }
 .stuck-keyboard { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 9px 4px var(--keyboard-shadow)); }
 .keyboard-edge { fill: var(--keyboard-edge); }
 .keyboard-face { fill: var(--keyboard-face); }
@@ -238,20 +238,20 @@ body {
 .key-empty { opacity: 0.15; }
 .keyboard-hold { animation: keyboard-stick 1.5s ease-out both; }
 @keyframes keyboard-stick {
-    0% { transform: translate(-50%,-50%) scale(1.13,0.76) rotate(-1deg); }
-    13% { transform: translate(-50%,-50%) scale(0.98,0.93) rotate(2deg); }
-    27% { transform: translate(-50%,-50%) scale(1.02,0.86) rotate(-1deg); }
-    46% { transform: translate(-50%,-50%) scale(1,0.89) rotate(0.6deg); }
-    70%,100% { transform: translate(-50%,-50%) scale(1,0.89) rotate(0deg); }
+    0% { transform: translate(-50%,-50%) scale(1.13,0.76) rotate(-23deg); }
+    13% { transform: translate(-50%,-50%) scale(0.98,0.93) rotate(-20deg); }
+    27% { transform: translate(-50%,-50%) scale(1.02,0.86) rotate(-23deg); }
+    46% { transform: translate(-50%,-50%) scale(1,0.89) rotate(-21.4deg); }
+    70%,100% { transform: translate(-50%,-50%) scale(1,0.89) rotate(-22deg); }
 }
 .keyboard-slide { animation: keyboard-peel 1.8s linear both; }
 @keyframes keyboard-peel {
-    0% { transform: translate(-50%,-50%) scale(1,0.89); }
-    15% { transform: translate(-50%,calc(-50% + 1dvh)) scale(1,0.94) rotate(2deg); }
-    35% { transform: translate(-48%,calc(-50% + 8dvh)) rotate(5deg); }
-    60% { transform: translate(-45%,calc(-50% + 26dvh)) rotate(9deg); }
-    80% { transform: translate(-42%,calc(-50% + 47dvh)) rotate(13deg); }
-    100% { transform: translate(-38%,calc(-50% + 95dvh)) rotate(18deg); }
+    0% { transform: translate(-50%,-50%) scale(1,0.89) rotate(-22deg); }
+    15% { transform: translate(-50%,calc(-50% + 1dvh)) scale(1,0.94) rotate(-20deg); }
+    35% { transform: translate(-48%,calc(-50% + 8dvh)) rotate(-17deg); }
+    60% { transform: translate(-45%,calc(-50% + 26dvh)) rotate(-13deg); }
+    80% { transform: translate(-42%,calc(-50% + 47dvh)) rotate(-9deg); }
+    100% { transform: translate(-38%,calc(-50% + 130dvh)) rotate(-4deg); }
 }
 .loose-key { position: absolute; top: 30%; width: 26px; height: 24px; display: grid; place-items: center; background: var(--keyboard-key); color: var(--keyboard-ink); border: 2px solid var(--keyboard-edge); border-radius: 4px; font: 12px "Fira Code",monospace; box-shadow: 0 3px 2px var(--keyboard-shadow); }
 .loose-key-0 { left: 22%; }
@@ -270,7 +270,7 @@ body {
 @keyframes key-slide { from { transform: translate(44px,170px) rotate(280deg); } to { transform: translate(65px,330px) rotate(390deg); } }
 @media (prefers-reduced-motion: reduce) {
     .splat-shake { animation: none; }
-    .keyboard-hold { animation: none; transform: translate(-50%,-50%) scale(1,0.89); }
+    .keyboard-hold { animation: none; transform: translate(-50%,-50%) scale(1,0.89) rotate(-22deg); }
 }
 
 @keyframes blink {
