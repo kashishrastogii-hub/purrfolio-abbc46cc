@@ -862,8 +862,12 @@ export class Room3D {
         const eyeY = this.throwT >= 0 ? 1.24 : Math.max(cur.eye * eyeOpen, 0.06);
         P.eyeL.scale.y = eyeY;
         P.eyeR.scale.y = eyeY;
+        P.pupilL.scale.y = eyeY;
+        P.pupilR.scale.y = eyeY;
         P.eyeL.visible = cur.eye > 0.12;
         P.eyeR.visible = cur.eye > 0.12;
+        P.pupilL.visible = cur.eye > 0.12;
+        P.pupilR.visible = cur.eye > 0.12;
         P.closedEyes.visible = cur.eye <= 0.12;
         const gs = eyeY > 0.4 ? 1 : 0.01;
         P.glintL.scale.setScalar(gs);
@@ -873,8 +877,8 @@ export class Room3D {
         P.jaw.scale.y = Math.max(jawTarget, 0.01);
 
         const flat = this.earsFlat ? 1 : 0;
-        P.earL.rotation.z += (-0.24 - cur.droop * 0.55 - flat * 1.15 - P.earL.rotation.z) * k;
-        P.earR.rotation.z += (0.24 + cur.droop * 0.55 + flat * 1.15 - P.earR.rotation.z) * k;
+        P.earL.rotation.z += (-0.24 - cur.droop * 0.35 - flat * 1.15 - P.earL.rotation.z) * k;
+        P.earR.rotation.z += (0.24 + cur.droop * 0.35 + flat * 1.15 - P.earR.rotation.z) * k;
         P.earL.rotation.x += ((flat ? -0.5 : 0) - P.earL.rotation.x) * k;
         P.earR.rotation.x += ((flat ? -0.5 : 0) - P.earR.rotation.x) * k;
 
