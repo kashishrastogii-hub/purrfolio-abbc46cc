@@ -1,6 +1,9 @@
 # Portfolio import
 
 ## Room updates
+- [ ] Rebuild only the kitten with natural tabby anatomy, fur, face, bow and a continuous furry tail.
+- [ ] Preserve sleeping/waking/typing/slamming/throwing behavior and add kitten-only soft lighting.
+- [ ] Verify the kitten poses, keyboard reach and unchanged room on desktop and phone.
 - [x] Angle the monitor slightly toward the cat while retaining readable text.
 - [x] Improve the visibility of the buildings outside the window.
 - [x] Replace the corner lamp with an aesthetic design and give the rug a brown pattern.
