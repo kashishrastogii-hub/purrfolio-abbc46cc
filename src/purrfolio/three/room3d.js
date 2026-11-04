@@ -386,7 +386,7 @@ export class Room3D {
         this.screenTex.colorSpace = THREE.SRGBColorSpace;
         this.screenMesh = new THREE.Mesh(
             new THREE.PlaneGeometry(0.79, 0.48),
-            new THREE.MeshBasicMaterial({ map: this.screenTex, toneMapped: false })
+            new THREE.MeshBasicMaterial({ map: this.screenTex, color: 0xb8b0a4, toneMapped: false })
         );
         this.screenMesh.position.set(0, 1.14, 0.033);
         mon.add(this.screenMesh);
@@ -419,7 +419,7 @@ export class Room3D {
                 inst.setMatrixAt(ki++, m4);
             }
         this.kb.add(inst);
-        this.kb.position.set(DESK_CENTER_X, 0.762, -2.08);
+        this.kb.position.set(DESK_CENTER_X, 0.762, -2.18);
         this.kb.rotation.y = 0;
         this.scene.add(this.kb);
     }
@@ -619,6 +619,7 @@ export class Room3D {
         this.catGroup = rig.group;
         this.catGroup.position.set(DESK_CENTER_X, 0.53, -1.81);
         this.catGroup.rotation.y = -0.55;
+        this.catGroup.scale.setScalar(1.12);
         this.scene.add(this.catGroup);
         this.hit = new THREE.Mesh(
             new THREE.SphereGeometry(0.42, 12, 10),
@@ -647,9 +648,9 @@ export class Room3D {
             x.lineTo(0, 340);
             x.fill();
         } else {
-            x.fillStyle = "#fff3da";
+            x.fillStyle = "#e6dccb";
             x.fillRect(0, 0, w, h);
-            x.fillStyle = "#4a3f35";
+            x.fillStyle = "#231c16";
             x.font = '600 66px "Fira Code", monospace';
             const lines = [""];
             for (const char of this.screenText) {
@@ -783,16 +784,19 @@ export class Room3D {
     _tailTargets(mode, t) {
         const out = [];
         if (mode === "wrap") {
-            for (let i = 0; i < 6; i++) {
-                const a = 0.55 - i * 0.5;
-                out.push([Math.cos(a) * 0.19, 0.035, Math.sin(a) * 0.19 + 0.02]);
-            }
+            // Sleeping tail drapes over the seat edge, as in the user's sketch, with a lazy tip sway.
+            const drape = [[0.02, 0.06, 0.14], [0.1, 0.03, 0.21], [0.17, -0.05, 0.25], [0.2, -0.16, 0.26], [0.2, -0.26, 0.25], [0.18, -0.34, 0.23]];
+            drape.forEach((d, i) => {
+                const sway = Math.sin(t * 0.9) * 0.02 * Math.max(0, i - 1) / 4;
+                out.push([d[0] + sway, d[1], d[2] + sway * 0.5]);
+            });
         } else if (mode === "up") {
             for (let i = 0; i < 6; i++)
                 out.push([0.025, 0.095 + i * 0.055, 0.16 + i * 0.019 + Math.sin(t * 3 + i * 0.8) * 0.007]);
         } else {
-            const f = this.poseName === "happy" ? 6 : 1.6;
-            const amp = this.poseName === "happy" ? 0.032 : 0.012;
+            // Tail mood: calm sway, faster flicks when frantic, big lashes while banging.
+            const f = this.banging ? 11 : this.frantic ? 8 : this.poseName === "happy" ? 6 : this.typing ? 2.4 : 1.6;
+            const amp = this.banging ? 0.07 : this.frantic ? 0.05 : this.poseName === "happy" ? 0.032 : 0.02;
             for (let i = 0; i < 6; i++)
                 out.push([0.045 + Math.sin(t * f + i * 0.65) * amp * (0.4 + i / 4), 0.095 - i * 0.047, 0.15 + i * 0.047]);
         }
@@ -868,7 +872,7 @@ export class Room3D {
         const bangPhase = (this.bangTime % 0.35) / 0.35;
         const slam = this.banging ? (bangPhase < 0.65 ? Math.sin(bangPhase / 0.65 * Math.PI / 2) : Math.max(0, 1 - (bangPhase - 0.65) / 0.15)) * 0.15 : 0;
         const bob = slam + (this.typing ? Math.abs(Math.sin(t * (this.frantic ? 21 : 8.5))) * (this.frantic ? 0.03 : 0.016) : 0);
-        const bobR = slam + (this.typing ? Math.abs(Math.sin(t * (this.frantic ? 21 : 8.5) + Math.PI)) * (this.frantic ? 0.03 : 0.016) : 0);
+        const bobR = slam + (this.typing ? Math.abs(Math.sin(t * (this.frantic ? 21 : 8.5) + Math.PI / 2)) * (this.frantic ? 0.03 : 0.016) : 0);
         P.legFL.position.set(-0.088, 0.19 + cur.pawY + bob, -0.11 + cur.pawZ);
         P.legFR.position.set(0.088, 0.19 + cur.pawY + bobR, -0.11 + cur.pawZ);
         P.legFL.rotation.x = cur.pawRotX;
