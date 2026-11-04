@@ -44,23 +44,32 @@ export function buildCat() {
     P.nose.rotation.y = Math.PI;
     P.head.add(P.nose);
     const dark = std(0x6b4630, 0.8);
+    const curveMesh = (points, radius, material, parent) => {
+        const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(...p)));
+        const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 14, radius, 4, false), material);
+        parent.add(mesh);
+        return mesh;
+    };
     const mouthMat = std(C.mouth, 0.7);
     // Small "w" mouth under the nose, like the reference kitten.
     curveMesh([[0,-0.044,-0.139],[-0.006,-0.053,-0.138],[-0.014,-0.046,-0.136]],0.001,mouthMat,P.head);
     curveMesh([[0,-0.044,-0.139],[0.006,-0.053,-0.138],[0.014,-0.046,-0.136]],0.001,mouthMat,P.head);
     P.jaw = sphere(0.019, std(0x613b34), [1, 0.01, 0.35], [0,-0.058,-0.132], P.head);
-    const eyeMat = new THREE.MeshPhysicalMaterial({ color: C.eye, roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.05, metalness: 0.05 });
-    P.eyeL = sphere(0.032, eyeMat, [1,1,0.56], [-0.053,0.018,-0.099], P.head);
-    P.eyeR = sphere(0.032, eyeMat, [1,1,0.56], [0.053,0.018,-0.099], P.head);
-    P.eyeL.rotation.y = 0.22;
-    P.eyeR.rotation.y = -0.22;
+    const eyeMat = new THREE.MeshPhysicalMaterial({ color: C.eye, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05, metalness: 0 });
+    P.eyeL = sphere(0.038, eyeMat, [1,1,0.72], [-0.048,0.008,-0.1], P.head);
+    P.eyeR = sphere(0.038, eyeMat, [1,1,0.72], [0.048,0.008,-0.1], P.head);
+    P.eyeL.rotation.y = 0.2;
+    P.eyeR.rotation.y = -0.2;
+    const pupilMat = new THREE.MeshPhysicalMaterial({ color: C.pupil, roughness: 0.18, clearcoat: 1 });
+    P.pupilL = sphere(0.02, pupilMat, [1,1,0.8], [-0.046,0.006,-0.124], P.head);
+    P.pupilR = sphere(0.02, pupilMat, [1,1,0.8], [0.046,0.006,-0.124], P.head);
     const glint = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
-    P.glintL = sphere(0.0042, glint, [1,1,0.55],[-0.06,0.027,-0.118],P.head);
-    P.glintR = sphere(0.0042, glint, [1,1,0.55],[0.046,0.027,-0.118],P.head);
+    P.glintL = sphere(0.005, glint, [1,1,0.55],[-0.056,0.032,-0.121],P.head);
+    P.glintR = sphere(0.005, glint, [1,1,0.55],[0.04,0.032,-0.121],P.head);
     P.closedEyes = new THREE.Group();
     P.head.add(P.closedEyes);
     for (const side of [-1,1]) {
-        curveMesh([[side*0.025,0.007,-0.118],[side*0.051,0.003,-0.123],[side*0.077,0.014,-0.109]],0.0016,dark,P.closedEyes);
+        curveMesh([[side*0.028,0.004,-0.121],[side*0.056,0.0,-0.126],[side*0.084,0.012,-0.112]],0.0018,dark,P.closedEyes);
     }
     const makeEar = side => {
         const ear = new THREE.Group();
@@ -69,11 +78,11 @@ export function buildCat() {
         ear.add(outer);
         groom(outer,350,0.004);
         const inner = new THREE.Mesh(earGeometry(),std(C.innerEar,0.93));
-        inner.scale.set(0.66,0.68,0.12);
-        inner.position.set(0,0.008,-0.016);
+        inner.scale.set(0.68,0.72,0.12);
+        inner.position.set(0,0.01,-0.016);
         ear.add(inner);
-        ear.position.set(side*0.078,0.071,-0.008);
-        ear.rotation.z = -0.2*side;
+        ear.position.set(side*0.082,0.08,-0.004);
+        ear.rotation.z = -0.18*side;
         P.head.add(ear);
         return ear;
     };
