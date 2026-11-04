@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import tabletopLampModel from "@/assets/models/tabletop-lamp.glb.asset.json";
 import { buildCat, POSES } from "./catRig";
 import { DESK_CENTER_X } from "../lib/typingSequence";
 
@@ -138,7 +140,7 @@ export class Room3D {
         this.scene.add(this.moon, this.moon.target);
 
         this.lampLight = new THREE.PointLight(0xff9a3c, DIM.lamp, 9, 1.6);
-        this.lampLight.position.set(-0.1, 1.16, -2.48);
+        this.lampLight.position.set(0.31, 1.1, -2.5);
         this.scene.add(this.lampLight);
 
         this.monitorLight = new THREE.PointLight(0xffe9c0, 0, 2.4, 2);
@@ -229,20 +231,40 @@ export class Room3D {
 
         // rug
         const rugTex = canvasTex(512, 512, (x) => {
-            x.fillStyle = "#d96a4b";
+            x.fillStyle = "#886449";
             x.fillRect(0, 0, 512, 512);
-            x.strokeStyle = "#f2dcb8";
-            x.lineWidth = 10;
-            x.setLineDash([34, 22]);
-            [190, 130].forEach((r) => {
-                x.beginPath();
-                x.arc(256, 256, r, 0, Math.PI * 2);
-                x.stroke();
-            });
-            x.setLineDash([]);
+            // Woven diamond lattice with a chocolate border, not concentric rings.
+            x.strokeStyle = "#c6a77f";
+            x.lineWidth = 7;
+            for (let row = -1; row < 8; row++) {
+                for (let col = -1; col < 8; col++) {
+                    const cx = col * 80 + (row % 2) * 40;
+                    const cy = row * 72;
+                    x.beginPath();
+                    x.moveTo(cx, cy - 30);
+                    x.lineTo(cx + 30, cy);
+                    x.lineTo(cx, cy + 30);
+                    x.lineTo(cx - 30, cy);
+                    x.closePath();
+                    x.stroke();
+                }
+            }
+            x.strokeStyle = "#543a2b";
+            x.lineWidth = 18;
             x.beginPath();
-            x.arc(256, 256, 70, 0, Math.PI * 2);
+            x.arc(256, 256, 238, 0, Math.PI * 2);
             x.stroke();
+            // Fine warp and weft retain the fabric character under room lighting.
+            x.lineWidth = 1;
+            x.strokeStyle = "rgba(235,215,183,0.12)";
+            for (let i = 0; i < 512; i += 4) {
+                x.beginPath();
+                x.moveTo(i, 0);
+                x.lineTo(i, 512);
+                x.moveTo(0, i);
+                x.lineTo(512, i);
+                x.stroke();
+            }
         });
         const rug = new THREE.Mesh(new THREE.CircleGeometry(1.05, 48), new THREE.MeshStandardMaterial({ map: rugTex, roughness: 1 }));
         rug.rotation.x = -Math.PI / 2;
@@ -255,30 +277,26 @@ export class Room3D {
     _buildCity() {
         const winTex = (n) =>
             canvasTex(128, 256, (x) => {
-                x.fillStyle = "#0a0a14";
+                x.fillStyle = ["#293447", "#334052", "#253044"][n];
                 x.fillRect(0, 0, 128, 256);
                 for (let r = 0; r < 14; r++)
                     for (let k = 0; k < 6; k++) {
                         const on = (r * 7 + k * 13 + n * 31) % 10 < 3.5;
-                        x.fillStyle = on ? "#ffd98e" : "#141c38";
+                        x.fillStyle = on ? "#d8b780" : "#182334";
                         x.fillRect(8 + k * 20, 8 + r * 18, 12, 10);
                     }
             });
         const bMats = [0, 1, 2].map((i) => {
             const t = winTex(i);
-            return new THREE.MeshStandardMaterial({
-                color: 0x0e1530,
-                emissive: 0xffd98e,
-                emissiveMap: t,
+            return new THREE.MeshBasicMaterial({
                 map: t,
-                emissiveIntensity: 1.1,
-                roughness: 0.9,
             });
         });
         const spots = [
             [-5.2, 0.9, -6.2], [-4.1, 1.6, -7], [-3.2, 2.6, -6.4], [-2.4, 1.2, -7.6],
             [-1.9, 3.1, -6.6], [-2.9, 2.0, -7.9], [-4.9, 2.7, -7.2], [-3.9, 1.1, -8.3],
             [-5.9, 1.4, -7.7], [-2.6, 2.4, -6.9], [-4.6, 2.1, -8.6], [-6, 2.1, -8.2], [-3.5, 2.9, -8.9],
+            [-7.2, 2.7, -6.5], [-6.3, 2.2, -6.2], [-8.1, 3.0, -7.1], [-7.0, 3.3, -7.8],
         ];
         spots.forEach(([bx, bh, bz], i) => {
             const bw = 0.55 + ((i * 37) % 50) / 90;
@@ -335,7 +353,7 @@ export class Room3D {
         g.position.set(DESK_CENTER_X, 0, -2.32);
         this.scene.add(g);
 
-        /* slim flat-screen, turned toward the viewer */
+        /* slim flat-screen, slightly cat-facing while still readable */
         const mon = new THREE.Group();
         const body = new THREE.Mesh(rbox(0.88, 0.57, 0.045, 0.018), std(0xe3d3b3, 0.6));
         body.position.y = 1.14;
@@ -365,7 +383,7 @@ export class Room3D {
         this.led.position.set(0.38, 0.888, 0.035);
         mon.add(this.led);
         mon.position.set(DESK_CENTER_X, 0, -2.51);
-        mon.rotation.y = 1.02;
+        mon.rotation.y = 0.8;
         this.scene.add(mon);
         this._drawScreen();
 
@@ -414,24 +432,44 @@ export class Room3D {
 
     _buildLamp() {
         const g = new THREE.Group();
-        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.09, 0.03, 20), std(0x8a4a26, 0.6));
-        base.castShadow = true;
-        g.add(base);
-        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 0.34, 10), std(0x8a4a26, 0.6));
-        stem.position.set(0.015, 0.18, 0);
-        stem.rotation.z = -0.08;
-        g.add(stem);
-        const shade = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.13, 24, 1, true), new THREE.MeshStandardMaterial({ color: 0xc9552e, emissive: 0xff8a3c, emissiveIntensity: 0, roughness: 0.6, side: THREE.DoubleSide }));
-        shade.position.set(0.035, 0.4, 0);
-        shade.rotation.z = 0.22;
-        g.add(shade);
-        this.shade = shade;
+        this.lampReady = false;
+        const linen = canvasTex(128, 128, (x) => {
+            x.fillStyle = "#e1cfa8";
+            x.fillRect(0, 0, 128, 128);
+            for (let i = 0; i < 128; i += 4) {
+                x.fillStyle = i % 8 ? "rgba(107,83,48,0.12)" : "rgba(255,247,224,0.24)";
+                x.fillRect(i, 0, 1, 128);
+                x.fillRect(0, i, 128, 1);
+            }
+        });
+        this.lampShadeMaterial = new THREE.MeshStandardMaterial({ map: linen, color: 0xfff0d0, emissive: 0xffc477, emissiveIntensity: 0, roughness: 0.95 });
+        new GLTFLoader().load(tabletopLampModel.url, ({ scene: model }) => {
+            if (this.disposed) return;
+            const bounds = new THREE.Box3().setFromObject(model);
+            const center = bounds.getCenter(new THREE.Vector3());
+            const scale = 0.43 / (bounds.max.y - bounds.min.y);
+            model.scale.setScalar(scale);
+            model.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale);
+            model.traverse((node) => {
+                if (!node.isMesh) return;
+                node.castShadow = true;
+                node.receiveShadow = true;
+                const recolor = (material) => material.name === "lamp"
+                    ? this.lampShadeMaterial
+                    : new THREE.MeshStandardMaterial({ color: 0xb99a5f, metalness: 0.75, roughness: 0.32 });
+                node.material = Array.isArray(node.material) ? node.material.map(recolor) : recolor(node.material);
+            });
+            g.add(model);
+            this.lampReady = true;
+        }, undefined, (error) => {
+            console.error("Unable to load tabletop lamp", error);
+        });
         const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.028, 14, 10), new THREE.MeshStandardMaterial({ color: 0xffd9a0, emissive: 0xffb45e, emissiveIntensity: 0, roughness: 0.4 }));
-        bulb.position.set(0.045, 0.36, 0);
+        bulb.position.set(0, 0.33, 0);
         g.add(bulb);
         this.bulb = bulb;
         this.lampGlow = glowSprite(0xff9a3c, 0.9, 0);
-        this.lampGlow.position.set(0.045, 0.37, 0);
+        this.lampGlow.position.set(0, 0.33, 0);
         g.add(this.lampGlow);
         g.position.set(0.31, 0.76, -2.5);
         this.scene.add(g);
@@ -836,7 +874,7 @@ export class Room3D {
         this.lampLight.intensity += (this.curTargets.lamp - this.lampLight.intensity) * lk;
         this.fill.intensity += (this.curTargets.fill - this.fill.intensity) * lk;
         const lampOn = Math.min(this.lampLight.intensity / 16, 1);
-        this.shade.material.emissiveIntensity = lampOn * 1.6;
+        this.lampShadeMaterial.emissiveIntensity = lampOn * 0.65;
         this.bulb.material.emissiveIntensity = lampOn * 2.4;
         this.lampGlow.material.opacity = lampOn * 0.6;
         this.monitorLight.intensity += ((this.monitorOn ? 2.2 : 0) - this.monitorLight.intensity) * lk;
@@ -893,6 +931,6 @@ export class Room3D {
         }
 
         this.renderer.render(this.scene, this.camera);
-        this.container.dataset.sceneReady = "1";
+        if (this.lampReady) this.container.dataset.sceneReady = "1";
     }
 }
