@@ -31,7 +31,7 @@ export default function Scene3D({
         if (import.meta.env.DEV) {
             window.__game = {
                 get state() {
-                    return { pose: mod.poseName, typing: mod.typing, frantic: mod.frantic, banging: mod.banging, text: mod.screenText, monitor: mod.monitorOn };
+                    return { pose: mod.poseName, typing: mod.typing, frantic: mod.frantic, banging: mod.banging, text: mod.screenText, monitor: mod.monitorOn, throwT: mod.throwT, headYaw: mod.cat.head.rotation.y };
                 },
                 catPoint: () => {
                     const v = mod.hit.position.clone().project(mod.camera);
@@ -40,6 +40,7 @@ export default function Scene3D({
                 sim: (seconds) => {
                     for (let t = 0; t < seconds; t += 1 / 60) mod.advance(1 / 60, t);
                 },
+                renderPose: (pose, seconds = 1) => { mod.setPose(pose); for(let t=0;t<seconds;t+=1/60) mod.advance(1/60,t); },
             };
         }
         return () => {

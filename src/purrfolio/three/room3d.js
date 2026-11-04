@@ -4,6 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import tabletopLampModel from "@/assets/models/tabletop-lamp.glb.asset.json";
 import { buildCat, POSES } from "./catRig";
 import { DESK_CENTER_X } from "../lib/typingSequence";
+import { FLIGHT_MS, RIGHT_TAIL } from "../lib/keyboardSplat";
 
 const CAM_POS = new THREE.Vector3(2.8, 1.55, -0.95);
 const CAM_TARGET = new THREE.Vector3(-0.25, 0.85, -2.45);
@@ -745,7 +746,9 @@ export class Room3D {
         this.kbStart = this.kb.position.clone();
         const fwd = new THREE.Vector3();
         this.camera.getWorldDirection(fwd);
-        this.kbEnd = this.camera.position.clone().add(fwd.multiplyScalar(0.45)).add(new THREE.Vector3(0.1, -0.3, 0));
+        this.kbEnd = this.camera.position.clone().add(fwd.multiplyScalar(0.65)).add(new THREE.Vector3(0, -0.09, 0));
+        this.kbRotationStart = this.kb.quaternion.clone();
+        this.kbRotationEnd = this.camera.quaternion.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),Math.PI/2));
     }
     shake() {
         this.shakeT = 0.9;
@@ -785,7 +788,7 @@ export class Room3D {
         const out = [];
         if (mode === "wrap") {
             // Sleeping tail drapes over the seat edge, as in the user's sketch, with a lazy tip sway.
-            const drape = [[0.02, 0.06, 0.14], [0.1, 0.03, 0.21], [0.17, -0.05, 0.25], [0.2, -0.16, 0.26], [0.2, -0.26, 0.25], [0.18, -0.34, 0.23]];
+            const drape = RIGHT_TAIL;
             drape.forEach((d, i) => {
                 const sway = Math.sin(t * 0.9) * 0.02 * Math.max(0, i - 1) / 4;
                 out.push([d[0] + sway, d[1], d[2] + sway * 0.5]);
@@ -798,9 +801,11 @@ export class Room3D {
             const f = this.banging ? 11 : this.frantic ? 8 : this.poseName === "happy" ? 6 : this.typing ? 2.4 : 1.6;
             const amp = this.banging ? 0.07 : this.frantic ? 0.05 : this.poseName === "happy" ? 0.032 : 0.02;
             for (let i = 0; i < 6; i++)
-                out.push([0.045 + Math.sin(t * f + i * 0.65) * amp * (0.4 + i / 4), 0.095 - i * 0.047, 0.15 + i * 0.047]);
+                out.push([RIGHT_TAIL[i][0] + Math.sin(t * f + i * 0.65) * amp * i / 5, RIGHT_TAIL[i][1], RIGHT_TAIL[i][2]]);
         }
-        return out;
+        // Counter-rotate chair-space tail placement so it cannot migrate to the left.
+        const angle = this.catGroup?.rotation.y || 0;
+        return out.map(([x,y,z]) => [x*Math.cos(angle)-z*Math.sin(angle),y,x*Math.sin(angle)+z*Math.cos(angle)]);
     }
 
     loop() {
@@ -841,6 +846,11 @@ export class Room3D {
         P.head.position.set(...cur.headPos);
         P.head.rotation.x = cur.headRotX;
         P.head.rotation.y = cur.headRotY;
+        if (this.throwT >= 0) {
+            const viewerAngle = Math.atan2(-(this.camera.position.x-this.catGroup.position.x),-(this.camera.position.z-this.catGroup.position.z));
+            P.head.rotation.y = viewerAngle - this.catGroup.rotation.y;
+            P.head.rotation.x = -0.1;
+        }
 
         this.blinkT -= dt;
         if (this.blinkT <= 0) {
@@ -849,7 +859,7 @@ export class Room3D {
         }
         this.blinkK += (1 - this.blinkK) * (1 - Math.exp(-14 * dt));
         const eyeOpen = cur.eye > 0.5 ? this.blinkK : 1;
-        const eyeY = Math.max(cur.eye * eyeOpen, 0.06);
+        const eyeY = this.throwT >= 0 ? 1.24 : Math.max(cur.eye * eyeOpen, 0.06);
         P.eyeL.scale.y = eyeY;
         P.eyeR.scale.y = eyeY;
         P.eyeL.visible = cur.eye > 0.12;
@@ -859,7 +869,7 @@ export class Room3D {
         P.glintL.scale.setScalar(gs);
         P.glintR.scale.setScalar(gs);
 
-        const jawTarget = Math.max(cur.jaw, this.talking ? 0.3 + 0.3 * Math.abs(Math.sin(t * 13)) : 0);
+        const jawTarget = Math.max(cur.jaw, this.throwT >= 0 ? 0.65 : this.talking ? 0.3 + 0.3 * Math.abs(Math.sin(t * 13)) : 0);
         P.jaw.scale.y = Math.max(jawTarget, 0.01);
 
         const flat = this.earsFlat ? 1 : 0;
@@ -877,6 +887,13 @@ export class Room3D {
         P.legFR.position.set(0.088, 0.19 + cur.pawY + bobR, -0.11 + cur.pawZ);
         P.legFL.rotation.x = cur.pawRotX;
         P.legFR.rotation.x = cur.pawRotX;
+        if (this.throwT >= 0 && this.throwT < 0.3) {
+            const reach = Math.sin(this.throwT/0.3*Math.PI)*0.07;
+            P.legFL.position.y += reach;
+            P.legFR.position.y += reach;
+        }
+        P.body.updateMatrix();
+        P.updateArms();
 
         const tt = this._tailTargets(cur.tail, t);
         this._tailCur.forEach((p, i) => {
@@ -922,12 +939,13 @@ export class Room3D {
         this.dust.geometry.attributes.position.needsUpdate = true;
 
         if (this.throwT >= 0 && this.kb.visible) {
-            this.throwT += dt / 0.68;
+            this.throwT += dt / (FLIGHT_MS / 1000);
             const e = Math.min(this.throwT, 1);
             const ease = e * e;
             this.kb.position.lerpVectors(this.kbStart, this.kbEnd, ease);
-            this.kb.scale.setScalar(1 + ease * 4.8);
-            this.kb.rotation.z = ease * 0.5;
+            this.kb.scale.setScalar(1 + ease * 0.5);
+            this.kb.quaternion.slerpQuaternions(this.kbRotationStart,this.kbRotationEnd,e);
+            this.kb.rotateY(Math.sin(e*Math.PI)*0.22);
             if (e >= 1) this.kb.visible = false;
         }
 
