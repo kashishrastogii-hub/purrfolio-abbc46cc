@@ -56,16 +56,16 @@ export function buildCat() {
     curveMesh([[0,-0.044,-0.139],[0.006,-0.053,-0.138],[0.014,-0.046,-0.136]],0.001,mouthMat,P.head);
     P.jaw = sphere(0.019, std(0x613b34), [1, 0.01, 0.35], [0,-0.058,-0.132], P.head);
     const eyeMat = new THREE.MeshPhysicalMaterial({ color: C.eye, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05, metalness: 0 });
-    P.eyeL = sphere(0.038, eyeMat, [1,1,0.72], [-0.048,0.008,-0.1], P.head);
-    P.eyeR = sphere(0.038, eyeMat, [1,1,0.72], [0.048,0.008,-0.1], P.head);
+    P.eyeL = sphere(0.034, eyeMat, [1,1,0.66], [-0.043,0.01,-0.103], P.head);
+    P.eyeR = sphere(0.034, eyeMat, [1,1,0.66], [0.043,0.01,-0.103], P.head);
     P.eyeL.rotation.y = 0.2;
     P.eyeR.rotation.y = -0.2;
     const pupilMat = new THREE.MeshPhysicalMaterial({ color: C.pupil, roughness: 0.18, clearcoat: 1 });
-    P.pupilL = sphere(0.02, pupilMat, [1,1,0.8], [-0.046,0.006,-0.124], P.head);
-    P.pupilR = sphere(0.02, pupilMat, [1,1,0.8], [0.046,0.006,-0.124], P.head);
+    P.pupilL = sphere(0.018, pupilMat, [1,1,0.8], [-0.041,0.008,-0.122], P.head);
+    P.pupilR = sphere(0.018, pupilMat, [1,1,0.8], [0.041,0.008,-0.122], P.head);
     const glint = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
-    P.glintL = sphere(0.005, glint, [1,1,0.55],[-0.056,0.032,-0.121],P.head);
-    P.glintR = sphere(0.005, glint, [1,1,0.55],[0.04,0.032,-0.121],P.head);
+    P.glintL = sphere(0.005, glint, [1,1,0.55],[-0.05,0.032,-0.119],P.head);
+    P.glintR = sphere(0.005, glint, [1,1,0.55],[0.036,0.032,-0.119],P.head);
     P.closedEyes = new THREE.Group();
     P.head.add(P.closedEyes);
     for (const side of [-1,1]) {
@@ -78,10 +78,10 @@ export function buildCat() {
         ear.add(outer);
         groom(outer,350,0.004);
         const inner = new THREE.Mesh(earGeometry(),std(C.innerEar,0.93));
-        inner.scale.set(0.68,0.72,0.12);
-        inner.position.set(0,0.01,-0.016);
+        inner.scale.set(0.62,0.66,0.12);
+        inner.position.set(0,0.008,-0.015);
         ear.add(inner);
-        ear.position.set(side*0.082,0.08,-0.004);
+        ear.position.set(side*0.079,0.075,-0.006);
         ear.rotation.z = -0.18*side;
         P.head.add(ear);
         return ear;

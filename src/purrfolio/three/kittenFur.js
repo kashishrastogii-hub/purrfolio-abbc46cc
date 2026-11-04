@@ -92,11 +92,11 @@ export function sculptedHead() {
 
 export function earGeometry() {
     const shape = new THREE.Shape();
-    shape.moveTo(-0.05, 0);
-    shape.quadraticCurveTo(-0.031, 0.075, -0.016, 0.115);
-    shape.quadraticCurveTo(-0.005, 0.133, 0.004, 0.115);
-    shape.quadraticCurveTo(0.026, 0.05, 0.05, 0);
-    shape.quadraticCurveTo(0, -0.018, -0.05, 0);
+    shape.moveTo(-0.042, 0);
+    shape.quadraticCurveTo(-0.026, 0.06, -0.013, 0.092);
+    shape.quadraticCurveTo(-0.004, 0.106, 0.003, 0.092);
+    shape.quadraticCurveTo(0.022, 0.04, 0.042, 0);
+    shape.quadraticCurveTo(0, -0.016, -0.042, 0);
     const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.018, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.007, bevelThickness: 0.005, curveSegments: 10 });
     geo.translate(0, 0, -0.009);
     return geo;
