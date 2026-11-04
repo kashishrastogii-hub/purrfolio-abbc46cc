@@ -614,8 +614,10 @@ export class Room3D {
     /* ---------- events ---------- */
     _fitView(w, h) {
         const aspect = w / h;
-        const distanceScale = Math.max(1, 1.15 / aspect);
-        this.basePos.copy(CAM_TARGET).add(CAM_POS.clone().sub(CAM_TARGET).multiplyScalar(distanceScale));
+        this.basePos.copy(CAM_POS);
+        // Wider vertical field on phones retains the same angle inside the room.
+        this.camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(23)) * Math.max(1, 1.15 / aspect)));
+        this.camera.updateProjectionMatrix();
     }
     _bind() {
         this.ray = new THREE.Raycaster();
