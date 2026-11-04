@@ -1,5 +1,8 @@
 # Portfolio import
 
+## Kitten reference rebuild
+- [x] Rebuild the kitten to the uploaded reference: ginger tabby coat, big green eyes with pupils, pink inner ears, w mouth, teal collar with gold bell, cream paws, no bow, whiskers kept.
+
 ## Room updates
 - [x] Match the plumed right-side tail and reconnect clear typing paws.
 - [x] Add viewer-facing grab, flight, splat, 1.5-second hold, peeling slide, loose keys and non-glowing glass.
