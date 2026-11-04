@@ -3,6 +3,7 @@ import { Mic, PawPrint, RotateCcw, Lock, RefreshCw, MonitorSmartphone } from "lu
 import Scene3D from "./components/scene3D";
 import ScreenCrack from "./components/ScreenCrack";
 import { useSpeech } from "./lib/speech";
+import { INTRODUCTION, randomLetters, typingDelay, BANG_DURATION_MS } from "./lib/typingSequence";
 import {
     unlockAudio,
     meow,
@@ -13,11 +14,6 @@ import {
     happyMrrp,
     catSpeak,
 } from "./lib/audio";
-
-const CLEAN = "Hi, I am Kashish. I build things that";
-const MESSY = " tgat tgATT!! thaaat!!";
-const FULL = CLEAN + MESSY;
-const CLEAN_LEN = CLEAN.length;
 
 const BlockedCat = () => (
     <svg viewBox="0 0 120 108" width="92" aria-hidden="true" style={{ display: "block", margin: "0 auto" }}>
@@ -54,6 +50,7 @@ export default function Experience() {
     const [earsFlat, setEarsFlat] = useState(false);
     const [typingPaws, setTypingPaws] = useState(false);
     const [frantic, setFrantic] = useState(false);
+    const [banging, setBanging] = useState(false);
     const [kbThrown, setKbThrown] = useState(false);
     const [crackOn, setCrackOn] = useState(false);
     const [shake, setShake] = useState(false);
@@ -68,6 +65,7 @@ export default function Experience() {
     const phaseRef = useRef(phase);
     const helloRef = useRef(false);
     const typeIdx = useRef(0);
+    const fullText = useRef(INTRODUCTION);
     useEffect(() => {
         phaseRef.current = phase;
     }, [phase]);
@@ -94,13 +92,15 @@ export default function Experience() {
 
     const rage = useCallback(() => {
         setEarsFlat(true);
-        setFrantic(true);
+        setFrantic(false);
+        setTypingPaws(false);
+        setBanging(true);
         annoyedMeow();
         later(() => {
-            setFrantic(false);
+            setBanging(false);
             whoosh();
             setKbThrown(true);
-        }, 1050);
+        }, BANG_DURATION_MS);
         later(() => {
             slamCrash();
             setFlashKey((k) => k + 1);
@@ -118,30 +118,27 @@ export default function Experience() {
     }, [later]);
 
     const startTyping = useCallback(() => {
-        let last = performance.now();
+        fullText.current = INTRODUCTION + " " + randomLetters();
         const step = () => {
-            const now = performance.now();
-            const dt = Math.min(now - last, 1200);
-            last = now;
-            const clean = typeIdx.current < CLEAN_LEN;
-            const per = clean ? 95 : 45;
-            let due = Math.min(6, Math.max(1, Math.floor(dt / per)));
-            for (let i = 0; i < due && typeIdx.current < FULL.length; i++) {
-                typeIdx.current += 1;
-                keyClick();
+            if (typeIdx.current >= INTRODUCTION.length) {
+                setFrantic(true);
+                setEarsFlat(true);
             }
-            setScreenText(FULL.slice(0, typeIdx.current));
-            if (typeIdx.current >= FULL.length) {
+            typeIdx.current += 1;
+            keyClick();
+            setScreenText(fullText.current.slice(0, typeIdx.current));
+            if (typeIdx.current >= fullText.current.length) {
                 rage();
                 return;
             }
-            later(step, clean ? 90 + Math.random() * 50 : 36 + Math.random() * 34);
+            later(step, typingDelay(typeIdx.current));
         };
         later(step, 60);
     }, [later, rage]);
 
     const wake = useCallback(() => {
         if (phaseRef.current !== "sleep") return;
+        phaseRef.current = "wake";
         unlockAudio();
         meow();
         setPhase("wake");
@@ -224,6 +221,7 @@ export default function Experience() {
         setEarsFlat(false);
         setTypingPaws(false);
         setFrantic(false);
+        setBanging(false);
         setKbThrown(false);
         setCrackOn(false);
         setShake(false);
@@ -250,6 +248,7 @@ export default function Experience() {
                     earsFlat={earsFlat}
                     typingPaws={typingPaws}
                     frantic={frantic}
+                    banging={banging}
                     kbThrown={kbThrown}
                     shake={shake}
                     talking={talking}

@@ -6,6 +6,7 @@ export default function Scene3D({
     earsFlat,
     typingPaws,
     frantic,
+    banging,
     talking,
     lit,
     monitorOn,
@@ -45,6 +46,9 @@ export default function Scene3D({
     useEffect(() => {
         modRef.current && modRef.current.setFrantic(frantic);
     }, [frantic]);
+    useEffect(() => {
+        modRef.current && modRef.current.setBanging(banging);
+    }, [banging]);
     useEffect(() => {
         modRef.current && modRef.current.setTalking(talking);
     }, [talking]);
