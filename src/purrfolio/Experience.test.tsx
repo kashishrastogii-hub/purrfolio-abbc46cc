@@ -10,7 +10,7 @@ vi.mock("./components/scene3D", () => ({ default: (props: Record<string, any>) =
 vi.mock("./lib/speech", () => ({ useSpeech: () => ({ stop: vi.fn(), supported: false }) }));
 vi.mock("./lib/audio", () => ({
     unlockAudio: vi.fn(), meow: vi.fn(), keyClick: vi.fn(), annoyedMeow: vi.fn(),
-    whoosh: vi.fn(), slamCrash: vi.fn(), happyMrrp: vi.fn(), catSpeak: vi.fn(),
+    whoosh: vi.fn(), slamCrash: vi.fn(), glassSlide: vi.fn(), keyClatter: vi.fn(), happyMrrp: vi.fn(), catSpeak: vi.fn(),
 }));
 
 beforeEach(() => vi.useFakeTimers());
@@ -48,5 +48,13 @@ describe("Cat interaction", () => {
         await act(async () => { vi.advanceTimersByTime(1100); });
         expect(captured.current['banging']).toBe(false);
         expect(captured.current['kbThrown']).toBe(true);
+        expect(captured.current['catPose']).toBe("turn");
+        await act(async () => { vi.advanceTimersByTime(650); });
+        expect(screen.getByTestId("keyboard-splat").getAttribute("data-stage")).toBe("hold");
+        expect(screen.getByTestId("screen-crack")).toBeInTheDocument();
+        await act(async () => { vi.advanceTimersByTime(1500); });
+        expect(screen.getByTestId("keyboard-splat").getAttribute("data-stage")).toBe("slide");
+        await act(async () => { vi.advanceTimersByTime(1800); });
+        expect(screen.queryByTestId("keyboard-splat")).not.toBeInTheDocument();
     });
 });

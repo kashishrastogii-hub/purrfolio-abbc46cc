@@ -15,3 +15,6 @@
 - The canvas host sets data-scene-ready after rendering; dev-only window.__game exposes live scene state and fixed-step pose rendering for reproducible scene checks.
 - Load licensed lamp GLBs through project asset pointers and wait for the lamp before declaring scene readiness; this prevents false-positive checks before models render.
 - Keep kitten grooming and continuous tail geometry in kittenFur while preserving catRig pose controls; kitten-only layer lights leave the room unchanged.
+- Keep keyboard flight/hold/slide timing in keyboardSplat; Experience schedules sound and glass overlays from the same constants so impact cannot drift from the throw.
+- Keep tail targets in chair space and counter-rotate them; update shoulder-to-wrist connectors from the animated paws every frame to preserve attached limbs.
+- Dev-only __game.renderPose(pose, seconds) renders reproducible poses; __game.state includes throwT and headYaw for checking the viewer-facing throw.

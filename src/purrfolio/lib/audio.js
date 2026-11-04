@@ -9,7 +9,11 @@ export function unlockAudio() {
         ctx = new AC();
         master = ctx.createGain();
         master.gain.value = 0.9;
-        master.connect(ctx.destination);
+        const limiter = ctx.createDynamicsCompressor();
+        limiter.threshold.value = -4;
+        limiter.ratio.value = 12;
+        master.connect(limiter);
+        limiter.connect(ctx.destination);
     }
     if (ctx.state === "suspended") ctx.resume();
 }
@@ -216,6 +220,22 @@ export function slamCrash() {
             dur: 0.1 + Math.random() * 0.2,
             g: 0.09,
         });
+    }
+}
+
+// Glass friction is continuous and pitch-changing; synthesis follows the sliding motion.
+export function glassSlide() {
+    if (!ready()) return;
+    const t = now();
+    noiseHit({t0:t,dur:1.7,f:900,f1:1900,q:6,g:0.08});
+    toneHit({t0:t,type:"sine",f0:620,f1:390,dur:1.6,g:0.045});
+}
+export function keyClatter() {
+    if (!ready()) return;
+    const t=now();
+    for(let i=0;i<5;i++) {
+        noiseHit({t0:t+i*0.045,dur:0.055,f:1700+i*250,q:1.5,g:0.13-i*0.018});
+        toneHit({t0:t+i*0.045,type:"triangle",f0:210+i*47,f1:90,dur:0.08,g:0.08});
     }
 }
 
