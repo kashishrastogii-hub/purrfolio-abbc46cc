@@ -6,6 +6,7 @@ export default function Scene3D({
     earsFlat,
     typingPaws,
     frantic,
+    banging,
     talking,
     lit,
     monitorOn,
@@ -27,7 +28,22 @@ export default function Scene3D({
             anchorEl: anchorRef.current,
         });
         modRef.current = mod;
+        if (import.meta.env.DEV) {
+            window.__game = {
+                get state() {
+                    return { pose: mod.poseName, typing: mod.typing, frantic: mod.frantic, banging: mod.banging, text: mod.screenText, monitor: mod.monitorOn };
+                },
+                catPoint: () => {
+                    const v = mod.hit.position.clone().project(mod.camera);
+                    return [(v.x * 0.5 + 0.5) * mod.container.clientWidth, (-v.y * 0.5 + 0.5) * mod.container.clientHeight];
+                },
+                sim: (seconds) => {
+                    for (let t = 0; t < seconds; t += 1 / 60) mod.advance(1 / 60, t);
+                },
+            };
+        }
         return () => {
+            if (import.meta.env.DEV) delete window.__game;
             modRef.current = null;
             mod.dispose();
         };
@@ -45,6 +61,9 @@ export default function Scene3D({
     useEffect(() => {
         modRef.current && modRef.current.setFrantic(frantic);
     }, [frantic]);
+    useEffect(() => {
+        modRef.current && modRef.current.setBanging(banging);
+    }, [banging]);
     useEffect(() => {
         modRef.current && modRef.current.setTalking(talking);
     }, [talking]);

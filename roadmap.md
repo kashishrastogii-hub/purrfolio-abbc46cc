@@ -1,5 +1,11 @@
 # Portfolio import
 
+## Room updates
+- [x] Center the chair, sleeping cat and keyboard in front of a slim, angled monitor.
+- [x] Type the requested introduction, accelerate into random letters, then bang the keyboard.
+- [x] Join a matching left wall to the window wall and widen the bookshelf slightly.
+- [x] Verify sleep, wake, typing and banging with five passing tests and desktop/mobile screenshots.
+
 - [x] Inspect and import the GitHub portfolio's actual source, excluding repository metadata and unused backend scaffolding.
 - [x] Adapt the first page to TanStack Start while preserving the original 3D experience.
 - [x] Compare desktop and phone rendering, cat wake/typing/crack and microphone recovery; greeting and replay passed with controlled recognition callbacks.

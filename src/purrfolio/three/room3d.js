@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { buildCat, POSES } from "./catRig";
+import { DESK_CENTER_X } from "../lib/typingSequence";
 
 const CAM_POS = new THREE.Vector3(2.8, 1.55, -0.95);
 const CAM_TARGET = new THREE.Vector3(-0.25, 0.85, -2.45);
@@ -55,6 +56,8 @@ export class Room3D {
         this.poseName = "curled";
         this.typing = false;
         this.frantic = false;
+        this.banging = false;
+        this.bangTime = 0;
         this.earsFlat = false;
         this.talking = false;
         this.lit = false;
@@ -96,6 +99,7 @@ export class Room3D {
         this.camera = new THREE.PerspectiveCamera(46, w / h, 0.1, 60);
         this.basePos = CAM_POS.clone();
         this.baseTarget = CAM_TARGET.clone();
+        this._fitView(w, h);
         this.camera.position.copy(this.basePos);
         this.camera.lookAt(this.baseTarget);
 
@@ -138,7 +142,7 @@ export class Room3D {
         this.scene.add(this.lampLight);
 
         this.monitorLight = new THREE.PointLight(0xffe9c0, 0, 2.4, 2);
-        this.monitorLight.position.set(-0.8, 1.1, -1.85);
+        this.monitorLight.position.set(DESK_CENTER_X, 1.1, -1.85);
         this.scene.add(this.monitorLight);
 
         this.fill = new THREE.PointLight(0x7a8ec4, DIM.fill, 14, 1);
@@ -193,6 +197,10 @@ export class Room3D {
         mkWall(2.3, 0.6, 0.12, -1.1, 2.7, -3);
         // right wall (x=3.2)
         mkWall(0.12, 3, 4.6, 3.2, 1.5, -0.7);
+        // matching left wall, meeting both the window wall and the floor
+        const leftWall = mkWall(0.12, 3, 4.6, -4.65, 1.5, -0.7);
+        // Let moonlight enter the open room rather than shadowing the entire desk.
+        leftWall.castShadow = false;
 
         // window frame + glass + mullions
         const frameMat = std(0x6b4a2e, 0.8);
@@ -324,40 +332,40 @@ export class Room3D {
             leg.castShadow = true;
             g.add(leg);
         });
-        g.position.set(-0.35, 0, -2.32);
+        g.position.set(DESK_CENTER_X, 0, -2.32);
         this.scene.add(g);
 
-        /* retro monitor */
+        /* slim flat-screen, turned toward the viewer */
         const mon = new THREE.Group();
-        const body = new THREE.Mesh(rbox(0.82, 0.62, 0.5, 0.05), std(0xe3d3b3, 0.6));
+        const body = new THREE.Mesh(rbox(0.88, 0.57, 0.045, 0.018), std(0xe3d3b3, 0.6));
         body.position.y = 1.14;
         body.castShadow = true;
         mon.add(body);
-        const bezel = new THREE.Mesh(rbox(0.74, 0.54, 0.06, 0.03), std(0x2e2c34, 0.5));
-        bezel.position.set(0, 1.14, 0.24);
+        const bezel = new THREE.Mesh(rbox(0.85, 0.54, 0.012, 0.014), std(0x2e2c34, 0.5));
+        bezel.position.set(0, 1.14, 0.026);
         mon.add(bezel);
         this.screenCanvas = document.createElement("canvas");
-        this.screenCanvas.width = 512;
-        this.screenCanvas.height = 340;
+        this.screenCanvas.width = 1024;
+        this.screenCanvas.height = 640;
         this.screenTex = new THREE.CanvasTexture(this.screenCanvas);
         this.screenTex.colorSpace = THREE.SRGBColorSpace;
         this.screenMesh = new THREE.Mesh(
-            new THREE.PlaneGeometry(0.66, 0.44),
-            new THREE.MeshStandardMaterial({ map: this.screenTex, emissive: 0xffffff, emissiveMap: this.screenTex, emissiveIntensity: 0.55, roughness: 0.35 })
+            new THREE.PlaneGeometry(0.79, 0.48),
+            new THREE.MeshBasicMaterial({ map: this.screenTex, toneMapped: false })
         );
-        this.screenMesh.position.set(0, 1.14, 0.272);
+        this.screenMesh.position.set(0, 1.14, 0.033);
         mon.add(this.screenMesh);
-        const neck = new THREE.Mesh(rbox(0.16, 0.16, 0.14, 0.02), std(0xcabc9c, 0.7));
-        neck.position.set(0, 0.86, 0);
+        const neck = new THREE.Mesh(rbox(0.075, 0.13, 0.06, 0.012), std(0xcabc9c, 0.7));
+        neck.position.set(0, 0.845, 0);
         mon.add(neck);
-        const foot = new THREE.Mesh(rbox(0.44, 0.045, 0.3, 0.02), std(0xcabc9c, 0.7));
+        const foot = new THREE.Mesh(rbox(0.26, 0.025, 0.18, 0.012), std(0xcabc9c, 0.7));
         foot.position.set(0, 0.785, 0.02);
         mon.add(foot);
         this.led = new THREE.Mesh(new THREE.SphereGeometry(0.011, 10, 8), new THREE.MeshStandardMaterial({ color: 0x223322, emissive: 0x39d98a, emissiveIntensity: 0, roughness: 0.4 }));
-        this.led.position.set(0.33, 0.9, 0.26);
+        this.led.position.set(0.38, 0.888, 0.035);
         mon.add(this.led);
-        mon.position.set(-0.8, 0, -2.45);
-        mon.rotation.y = 0.16;
+        mon.position.set(DESK_CENTER_X, 0, -2.51);
+        mon.rotation.y = 1.02;
         this.scene.add(mon);
         this._drawScreen();
 
@@ -376,8 +384,8 @@ export class Room3D {
                 inst.setMatrixAt(ki++, m4);
             }
         this.kb.add(inst);
-        this.kb.position.set(0.3, 0.762, -2.08);
-        this.kb.rotation.y = -0.08;
+        this.kb.position.set(DESK_CENTER_X, 0.762, -2.08);
+        this.kb.rotation.y = 0;
         this.scene.add(this.kb);
     }
 
@@ -400,7 +408,7 @@ export class Room3D {
             leg.castShadow = true;
             g.add(leg);
         });
-        g.position.set(0.32, 0, -1.85);
+        g.position.set(DESK_CENTER_X, 0, -1.85);
         this.scene.add(g);
     }
 
@@ -425,7 +433,7 @@ export class Room3D {
         this.lampGlow = glowSprite(0xff9a3c, 0.9, 0);
         this.lampGlow.position.set(0.045, 0.37, 0);
         g.add(this.lampGlow);
-        g.position.set(-0.12, 0.76, -2.5);
+        g.position.set(0.31, 0.76, -2.5);
         this.scene.add(g);
     }
 
@@ -433,23 +441,23 @@ export class Room3D {
         const g = new THREE.Group();
         const wood = std(0x6e4426, 0.85);
         const side = new THREE.Mesh(rbox(0.035, 1.55, 0.26, 0.01), wood);
-        side.position.set(-0.44, 0.775, 0);
+        side.position.set(-0.52, 0.775, 0);
         g.add(side);
         const side2 = side.clone();
-        side2.position.x = 0.44;
+        side2.position.x = 0.52;
         g.add(side2);
-        const backP = new THREE.Mesh(rbox(0.92, 1.55, 0.02, 0.005), std(0x5a3820, 0.9));
+        const backP = new THREE.Mesh(rbox(1.08, 1.55, 0.02, 0.005), std(0x5a3820, 0.9));
         backP.position.set(0, 0.775, -0.12);
         g.add(backP);
         const bookCols = [0xa04b3a, 0x3e6b5e, 0xc2913a, 0x5e4a75, 0x8a5a33, 0x4a6b8a];
         [0.28, 0.72, 1.16].forEach((sy, si) => {
-            const shelf = new THREE.Mesh(rbox(0.88, 0.03, 0.26, 0.008), wood);
+            const shelf = new THREE.Mesh(rbox(1.04, 0.03, 0.26, 0.008), wood);
             shelf.position.set(0, sy, 0);
             shelf.castShadow = true;
             g.add(shelf);
-            let bx = -0.36;
+            let bx = -0.44;
             let bi = si;
-            while (bx < 0.3) {
+            while (bx < 0.38) {
                 const bw = 0.035 + ((bi * 13) % 4) * 0.01;
                 const bh = 0.2 + ((bi * 29) % 5) * 0.025;
                 const book = new THREE.Mesh(rbox(bw, bh, 0.17, 0.006), std(bookCols[bi % 6], 0.8));
@@ -554,14 +562,14 @@ export class Room3D {
         const rig = buildCat();
         this.cat = rig.P;
         this.catGroup = rig.group;
-        this.catGroup.position.set(0.32, 0.53, -1.81);
+        this.catGroup.position.set(DESK_CENTER_X, 0.53, -1.81);
         this.catGroup.rotation.y = -0.55;
         this.scene.add(this.catGroup);
         this.hit = new THREE.Mesh(
             new THREE.SphereGeometry(0.42, 12, 10),
             new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
         );
-        this.hit.position.set(0.32, 0.75, -1.78);
+        this.hit.position.set(DESK_CENTER_X, 0.75, -1.78);
         this.hit.userData.isCat = true;
         this.scene.add(this.hit);
         this._tailCur = this._tailTargets("wrap", 0);
@@ -571,9 +579,11 @@ export class Room3D {
     /* ---------- screen canvas ---------- */
     _drawScreen() {
         const x = this.screenCanvas.getContext("2d");
+        const w = this.screenCanvas.width;
+        const h = this.screenCanvas.height;
         if (!this.monitorOn) {
             x.fillStyle = "#10141f";
-            x.fillRect(0, 0, 512, 340);
+            x.fillRect(0, 0, w, h);
             x.fillStyle = "rgba(255,255,255,0.045)";
             x.beginPath();
             x.moveTo(60, 0);
@@ -583,28 +593,32 @@ export class Room3D {
             x.fill();
         } else {
             x.fillStyle = "#fff3da";
-            x.fillRect(0, 0, 512, 340);
+            x.fillRect(0, 0, w, h);
             x.fillStyle = "#4a3f35";
-            x.font = '500 46px "Fira Code", monospace';
-            const words = this.screenText.split(" ");
-            const lines = [];
-            let cur = "";
-            for (const wd of words) {
-                if ((cur + " " + wd).trim().length > 10 && cur) {
-                    lines.push(cur.trim());
-                    cur = wd;
-                } else cur = (cur ? cur + " " : "") + wd;
+            x.font = '600 66px "Fira Code", monospace';
+            const lines = [""];
+            for (const char of this.screenText) {
+                const lastIndex = lines.length - 1;
+                const next = lines[lastIndex] + char;
+                if (x.measureText(next).width > w - 110) lines.push(char);
+                else lines[lastIndex] = next;
             }
-            if (cur.trim()) lines.push(cur.trim());
-            lines.slice(-4).forEach((l, i) => x.fillText(l, 58, 110 + i * 76));
+            lines.slice(0, 5).forEach((l, i) => x.fillText(l, 50, 110 + i * 100));
             const last = lines[lines.length - 1] || "";
             x.fillStyle = "#e2705e";
-            x.fillRect(60 + last.length * 27.6, 110 + Math.min(lines.length - 1, 3) * 76 - 36, 24, 44);
+            x.fillRect(50 + x.measureText(last).width, 110 + Math.min(lines.length - 1, 4) * 100 - 54, 8, 64);
         }
         this.screenTex.needsUpdate = true;
     }
 
     /* ---------- events ---------- */
+    _fitView(w, h) {
+        const aspect = w / h;
+        this.basePos.copy(CAM_POS);
+        // Wider vertical field on phones retains the same angle inside the room.
+        this.camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(23)) * Math.max(1, 1.15 / aspect)));
+        this.camera.updateProjectionMatrix();
+    }
     _bind() {
         this.ray = new THREE.Raycaster();
         this.ndc = new THREE.Vector2();
@@ -625,6 +639,7 @@ export class Room3D {
         this._onResize = () => {
             const w = this.container.clientWidth || window.innerWidth;
             const h = this.container.clientHeight || window.innerHeight;
+            this._fitView(w, h);
             this.camera.aspect = w / h;
             this.camera.updateProjectionMatrix();
             this.renderer.setSize(w, h);
@@ -645,6 +660,10 @@ export class Room3D {
     }
     setFrantic(v) {
         this.frantic = !!v;
+    }
+    setBanging(v) {
+        if (v && !this.banging) this.bangTime = 0;
+        this.banging = !!v;
     }
     setEarsFlat(v) {
         this.earsFlat = !!v;
@@ -730,10 +749,17 @@ export class Room3D {
         this._raf = requestAnimationFrame(this.loop);
         const dt = Math.min(this.clock.getDelta(), 0.05);
         const t = this.clock.elapsedTime;
+        this.advance(dt, t);
+    }
+
+    advance(dt, t) {
         const k = 1 - Math.exp(-7 * dt);
         const P = this.cat;
         const target = POSES[this.poseName] || POSES.sit;
         const cur = this.cur;
+        // Preserve the sleeping orientation; face the keyboard only after waking.
+        const facing = this.poseName === "curled" ? -0.55 : 0;
+        this.catGroup.rotation.y += (facing - this.catGroup.rotation.y) * k;
 
         for (const key of ["bodyPos", "bodyScale", "headPos"]) {
             for (let i = 0; i < 3; i++) cur[key][i] += (target[key][i] - cur[key][i]) * k;
@@ -780,8 +806,11 @@ export class Room3D {
         P.earL.rotation.x += ((flat ? -0.5 : 0) - P.earL.rotation.x) * k;
         P.earR.rotation.x += ((flat ? -0.5 : 0) - P.earR.rotation.x) * k;
 
-        const bob = this.typing ? Math.abs(Math.sin(t * (this.frantic ? 21 : 8.5))) * (this.frantic ? 0.03 : 0.016) : 0;
-        const bobR = this.typing ? Math.abs(Math.sin(t * (this.frantic ? 21 : 8.5) + Math.PI)) * (this.frantic ? 0.03 : 0.016) : 0;
+        if (this.banging) this.bangTime += dt;
+        const bangPhase = (this.bangTime % 0.35) / 0.35;
+        const slam = this.banging ? (bangPhase < 0.65 ? Math.sin(bangPhase / 0.65 * Math.PI / 2) : Math.max(0, 1 - (bangPhase - 0.65) / 0.15)) * 0.15 : 0;
+        const bob = slam + (this.typing ? Math.abs(Math.sin(t * (this.frantic ? 21 : 8.5))) * (this.frantic ? 0.03 : 0.016) : 0);
+        const bobR = slam + (this.typing ? Math.abs(Math.sin(t * (this.frantic ? 21 : 8.5) + Math.PI)) * (this.frantic ? 0.03 : 0.016) : 0);
         P.legFL.position.set(-0.088, 0.19 + cur.pawY + bob, -0.11 + cur.pawZ);
         P.legFR.position.set(0.088, 0.19 + cur.pawY + bobR, -0.11 + cur.pawZ);
         P.legFL.rotation.x = cur.pawRotX;
@@ -811,7 +840,6 @@ export class Room3D {
         this.bulb.material.emissiveIntensity = lampOn * 2.4;
         this.lampGlow.material.opacity = lampOn * 0.6;
         this.monitorLight.intensity += ((this.monitorOn ? 2.2 : 0) - this.monitorLight.intensity) * lk;
-        this.screenMesh.material.emissiveIntensity = this.monitorOn ? 0.55 : 0.02;
         this.led.material.emissiveIntensity = this.monitorOn ? 1.2 : 0;
 
         this.redrawAcc += dt;
@@ -865,5 +893,6 @@ export class Room3D {
         }
 
         this.renderer.render(this.scene, this.camera);
+        this.container.dataset.sceneReady = "1";
     }
 }

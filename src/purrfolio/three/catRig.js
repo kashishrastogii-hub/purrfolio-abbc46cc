@@ -225,7 +225,7 @@ export const POSES = {
         jaw: 0,
         droop: 0,
         pawY: 0.13,
-        pawZ: -0.11,
+        pawZ: -0.19,
         pawRotX: -0.55,
         tail: "down",
         breath: 0.018,
