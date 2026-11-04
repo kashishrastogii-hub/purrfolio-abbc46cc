@@ -999,7 +999,10 @@ export class Room3D {
         if (this.anchorEl) {
             const v = new THREE.Vector3();
             P.head.getWorldPosition(v);
-            v.y += 0.38;
+            // Float just above the cat as the viewer sees it: pull the anchor toward
+            // the camera so it tracks the cat's apparent spot, not the monitor behind it.
+            v.addScaledVector(new THREE.Vector3().subVectors(this.camera.position, v).normalize(), 0.55);
+            v.y += 0.16;
             v.project(this.camera);
             const ax = (v.x * 0.5 + 0.5) * (this.container.clientWidth || window.innerWidth);
             const ay = (-v.y * 0.5 + 0.5) * (this.container.clientHeight || window.innerHeight);
