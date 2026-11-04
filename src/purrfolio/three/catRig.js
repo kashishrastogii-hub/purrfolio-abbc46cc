@@ -19,7 +19,7 @@ export function buildCat() {
         if (fibers) groom(mesh, fibers);
         return mesh;
     };
-    P.body = sphere(0.16, coat, [1, 0.92, 1.18], [0, 0.17, 0], group, 2400);
+    P.body = sphere(0.16, coat, [1, 0.92, 1.18], [0, 0.17, 0], group, 4200);
     const chest = sphere(0.103, pale, [0.8, 1.18, 0.47], [0, 0.01, -0.122], P.body, 550);
     // The chest patch sits against the body, rather than a separate protruding ball.
     chest.rotation.x = -0.15;
@@ -29,7 +29,7 @@ export function buildCat() {
     const skull = new THREE.Mesh(sculptedHead(), faceCoat);
     skull.castShadow = true;
     P.head.add(skull);
-    groom(skull, 2000, 0.0055);
+    groom(skull, 3200, 0.008);
     for (const side of [-1, 1]) {
         sphere(0.044, pale, [0.94, 0.72, 0.79], [side * 0.025, -0.037, -0.106], P.head, 150);
     }
@@ -84,7 +84,7 @@ export function buildCat() {
     P.earL = makeEar(-1); P.earR = makeEar(1);
     const whisker = new THREE.MeshBasicMaterial({ color: 0xf5eddf });
     for (const side of [-1,1]) for (let i=0;i<3;i++) {
-        curveMesh([[side*0.029,-0.038+i*0.008,-0.137],[side*0.069,-0.039+i*0.012,-0.135],[side*0.12,-0.051+i*0.023,-0.115]],0.00065,whisker,P.head);
+        curveMesh([[side*0.029,-0.038+i*0.008,-0.137],[side*0.085,-0.039+i*0.014,-0.135],[side*0.17,-0.055+i*0.03,-0.11]],0.0013,whisker,P.head);
     }
     P.bow = new THREE.Group();
     const bowMat = std(C.pink,0.55);
@@ -172,7 +172,7 @@ export const POSES = {
         jaw: 0,
         droop: 0,
         pawY: 0.13,
-        pawZ: -0.19,
+        pawZ: -0.26,
         pawRotX: -0.55,
         tail: "down",
         breath: 0.018,

@@ -52,8 +52,8 @@ export function furMaterial(texture) {
 }
 
 // A single instanced draw makes fine tapered wisps follow the sculpted surface.
-export function groom(mesh, count = 1600, length = 0.006) {
-    const geometry = new THREE.ConeGeometry(0.00055, 1, 3, 1);
+export function groom(mesh, count = 1600, length = 0.01) {
+    const geometry = new THREE.ConeGeometry(0.0007, 1, 3, 1);
     geometry.translate(0, 0.5, 0);
     const material = new THREE.MeshStandardMaterial({ color: 0xb38e64, roughness: 1, side: THREE.DoubleSide });
     const strands = new THREE.InstancedMesh(geometry, material, count);
@@ -130,8 +130,8 @@ export function makeFurryTail(material) {
     const outer = new THREE.Mesh(geometry.clone(), new THREE.MeshStandardMaterial({ color: 0xb99165, transparent: true, opacity: 0.15, roughness: 1, depthWrite: false, side: THREE.BackSide }));
     outer.frustumCulled = false;
     tail.add(outer);
-    const strandGeo = new THREE.ConeGeometry(0.00065, 0.006, 3);
-    strandGeo.translate(0, 0.003, 0);
+    const strandGeo = new THREE.ConeGeometry(0.0008, 0.009, 3);
+    strandGeo.translate(0, 0.0045, 0);
     const strands = new THREE.InstancedMesh(strandGeo, new THREE.MeshStandardMaterial({ color: 0xc19b70, roughness: 1 }), 360);
     strands.frustumCulled = false;
     tail.add(strands);
@@ -145,14 +145,14 @@ export function makeFurryTail(material) {
             if (right.lengthSq() < 0.0001) right.set(1, 0, 0);
             right.normalize();
             normal.crossVectors(right, tangent).normalize();
-            const radius = 0.033 * (1 - 0.64 * t) * Math.min(1, (1 - t) * 20 + 0.03);
+            const radius = 0.05 * (1 - 0.64 * t) * Math.min(1, (1 - t) * 20 + 0.03);
             for (let j = 0; j < sides; j++) {
                 const a = j / sides * Math.PI * 2;
                 const offset = right.clone().multiplyScalar(Math.cos(a)).addScaledVector(normal, Math.sin(a));
                 const k = (i * sides + j) * 3;
                 const v = point.clone().addScaledVector(offset, radius);
                 positions[k] = v.x; positions[k + 1] = v.y; positions[k + 2] = v.z;
-                const edge = point.clone().addScaledVector(offset, radius + 0.0025);
+                const edge = point.clone().addScaledVector(offset, radius + 0.004);
                 outer.geometry.attributes.position.setXYZ(i * sides + j, edge.x, edge.y, edge.z);
             }
         }
