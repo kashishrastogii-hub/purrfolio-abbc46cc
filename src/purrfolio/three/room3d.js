@@ -405,21 +405,50 @@ export class Room3D {
         this.scene.add(mon);
         this._drawScreen();
 
-        /* keyboard */
+        /* keyboard — classic full layout: Esc/F-row, number row, Tab, Caps, Shift, modifier row + arrows */
         this.kb = new THREE.Group();
-        const kbBase = new THREE.Mesh(rbox(0.48, 0.035, 0.18, 0.015), std(0x9a9da3, 0.6));
+        const kbBase = new THREE.Mesh(rbox(0.64, 0.035, 0.17, 0.015), std(0x9a9da3, 0.6));
         this.kb.add(kbBase);
+        const keyGeo = new THREE.BoxGeometry(1, 1, 1);
         const keyMat = std(0xd4d6da, 0.65);
-        const keyGeo = new THREE.BoxGeometry(0.028, 0.014, 0.028);
-        const inst = new THREE.InstancedMesh(keyGeo, keyMat, 36);
-        const m4 = new THREE.Matrix4();
-        let ki = 0;
-        for (let r = 0; r < 3; r++)
-            for (let k = 0; k < 12; k++) {
-                m4.setPosition(-0.2 + k * 0.036, 0.024, -0.052 + r * 0.052);
-                inst.setMatrixAt(ki++, m4);
+        const modMat = std(0xb0b3ba, 0.65);
+        const KU = 0.03, KGAP = 0.0035, KH = 0.013, KD = 0.024;
+        const KROWS = [
+            { z: -0.062, h: 0.009, keys: [[1.5, 1], [0.75, 1], [1, 1], [1, 1], [1, 1], [1, 1], [0.75, 1], [1, 1], [1, 1], [1, 1], [1, 1], [0.75, 1], [1, 1], [1, 1], [1, 1], [1, 1]] },
+            { z: -0.04, h: KH, keys: [[1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [2, 1]] },
+            { z: -0.017, h: KH, keys: [[1.5, 1], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1.5, 1]] },
+            { z: 0.006, h: KH, keys: [[1.75, 1], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [2.25, 1]] },
+            { z: 0.029, h: KH, keys: [[2.25, 1], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [2.75, 1]] },
+            { z: 0.052, h: KH, keys: [[1.25, 1], [1.25, 1], [1.25, 1], [7.5, 1], [1.25, 1], [1.25, 1], [1.25, 1]] },
+        ];
+        const m4 = new THREE.Matrix4(), kq = new THREE.Quaternion(), ks = new THREE.Vector3(), kp = new THREE.Vector3();
+        const matsN = [], matsM = [];
+        for (const row of KROWS) {
+            let cx = -0.225;
+            for (const [w, isMod] of row.keys) {
+                kp.set(cx + (w * KU) / 2, 0.0175 + row.h / 2, row.z);
+                ks.set(w * KU - KGAP, row.h, KD - KGAP);
+                m4.compose(kp, kq, ks);
+                (isMod ? matsM : matsN).push(m4.clone());
+                cx += w * KU;
             }
-        this.kb.add(inst);
+        }
+        /* arrow cluster right of the bottom rows */
+        const aLeft = 0.225 + 0.008 + (KU - KGAP) / 2;
+        for (const [az, axx] of [[0.029, aLeft + KU], [0.052, aLeft], [0.052, aLeft + KU], [0.052, aLeft + 2 * KU]]) {
+            kp.set(axx, 0.0175 + KH / 2, az);
+            ks.set(KU - KGAP, KH, KD - KGAP);
+            m4.compose(kp, kq, ks);
+            matsN.push(m4.clone());
+        }
+        const mkInst = (mats, mat) => {
+            const inst = new THREE.InstancedMesh(keyGeo, mat, mats.length);
+            mats.forEach((mm, i) => inst.setMatrixAt(i, mm));
+            inst.instanceMatrix.needsUpdate = true;
+            return inst;
+        };
+        this.kb.add(mkInst(matsN, keyMat));
+        this.kb.add(mkInst(matsM, modMat));
         this.kb.position.set(DESK_CENTER_X, 0.762, -2.18);
         this.kb.rotation.y = 0;
         this.scene.add(this.kb);
@@ -970,7 +999,10 @@ export class Room3D {
         if (this.anchorEl) {
             const v = new THREE.Vector3();
             P.head.getWorldPosition(v);
-            v.y += 0.38;
+            // Float just above the cat as the viewer sees it: pull the anchor toward
+            // the camera so it tracks the cat's apparent spot, not the monitor behind it.
+            v.addScaledVector(new THREE.Vector3().subVectors(this.camera.position, v).normalize(), 0.55);
+            v.y += 0.16;
             v.project(this.camera);
             const ax = (v.x * 0.5 + 0.5) * (this.container.clientWidth || window.innerWidth);
             const ay = (-v.y * 0.5 + 0.5) * (this.container.clientHeight || window.innerHeight);
