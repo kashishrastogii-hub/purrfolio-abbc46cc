@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic, PawPrint, RotateCcw, Lock, RefreshCw, MonitorSmartphone } from "lucide-react";
 import Scene3D from "./components/scene3D";
 import ScreenCrack from "./components/ScreenCrack";
+import KeyboardSplat from "./components/KeyboardSplat";
+import { FLIGHT_MS, HOLD_MS, DROP_MS } from "./lib/keyboardSplat";
 import { useSpeech } from "./lib/speech";
 import { INTRODUCTION, randomLetters, typingDelay, BANG_DURATION_MS } from "./lib/typingSequence";
 import {
@@ -11,6 +13,8 @@ import {
     annoyedMeow,
     whoosh,
     slamCrash,
+    glassSlide,
+    keyClatter,
     happyMrrp,
     catSpeak,
 } from "./lib/audio";
@@ -52,6 +56,7 @@ export default function Experience() {
     const [frantic, setFrantic] = useState(false);
     const [banging, setBanging] = useState(false);
     const [kbThrown, setKbThrown] = useState(false);
+    const [splatStage, setSplatStage] = useState(null);
     const [crackOn, setCrackOn] = useState(false);
     const [shake, setShake] = useState(false);
     const [flashKey, setFlashKey] = useState(0);
@@ -100,21 +105,24 @@ export default function Experience() {
             setBanging(false);
             whoosh();
             setKbThrown(true);
-        }, BANG_DURATION_MS);
-        later(() => {
-            slamCrash();
-            setFlashKey((k) => k + 1);
-            setShake(true);
-            later(() => setShake(false), 700);
-        }, 1480);
-        later(() => {
-            setPhase("cracked");
-            setCrackOn(true);
-            setCaption("crack");
+            setCatPose("turn");
+            setSplatStage("flight");
             later(() => {
-                if (phaseRef.current === "cracked") setCaption("nudge");
-            }, 10000);
-        }, 2500);
+                slamCrash();
+                setCrackOn(true);
+                setSplatStage("hold");
+                setShake(true);
+                later(() => setShake(false), 700);
+            }, FLIGHT_MS);
+            later(() => { setSplatStage("slide"); glassSlide(); }, FLIGHT_MS + HOLD_MS);
+            later(() => {
+                keyClatter();
+                setSplatStage(null);
+                setPhase("cracked");
+                setCaption("crack");
+                later(() => { if (phaseRef.current === "cracked") setCaption("nudge"); }, 10000);
+            }, DROP_MS);
+        }, BANG_DURATION_MS);
     }, [later]);
 
     const startTyping = useCallback(() => {
@@ -223,6 +231,7 @@ export default function Experience() {
         setFrantic(false);
         setBanging(false);
         setKbThrown(false);
+        setSplatStage(null);
         setCrackOn(false);
         setShake(false);
         setFlashKey(0);
@@ -237,7 +246,7 @@ export default function Experience() {
     const transcriptLine = transcript.final || transcript.interim;
 
     return (
-        <div className="app-bg">
+        <div className={"app-bg" + (shake ? " splat-shake" : "")}>
             <div className="stage3d" data-testid="room-scene">
                 <Scene3D
                     key={`scene-${sceneVersion}`}
@@ -268,7 +277,7 @@ export default function Experience() {
                 )}
                 {caption === "nudge" && (
                     <div className="chip" data-testid="caption-nudge">
-                        <PawPrint /> Psst… the crack is still glowing. Tap it.
+                        <PawPrint /> Psst… tap the crack.
                     </div>
                 )}
                 {caption === "micwait" && (
@@ -278,7 +287,8 @@ export default function Experience() {
                 )}
             </div>
 
-            {crackOn && <ScreenCrack onTap={startListening} />}
+            {crackOn && <ScreenCrack onTap={splatStage ? undefined : startListening} />}
+            <KeyboardSplat stage={splatStage} />
 
             <div className="wordmark">
                 <PawPrint /> kashish.types

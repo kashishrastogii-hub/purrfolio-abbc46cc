@@ -101,14 +101,33 @@ export function buildCat() {
     P.head.add(P.bow);
     const makeFront = side => {
         const leg = new THREE.Group();
-        const upper = new THREE.Mesh(new THREE.CapsuleGeometry(0.026,0.075,8,16),coat);
+        const upper = new THREE.Mesh(new THREE.CapsuleGeometry(0.033,0.075,8,16),coat);
         upper.position.y=-0.043; upper.castShadow=true; leg.add(upper); groom(upper,380,0.004);
-        const paw = sphere(0.035,coat,[0.9,0.68,1.2],[0,-0.093,-0.018],leg,220);
+        const paw = sphere(0.039,coat,[0.95,0.74,1.2],[0,-0.093,-0.018],leg,300);
+        const connector = new THREE.Mesh(new THREE.CapsuleGeometry(0.031,1,6,16),coat);
+        connector.castShadow = true;
+        group.add(connector);
+        groom(connector,500,0.005);
+        P[side < 0 ? "armL" : "armR"] = connector;
         for(let i=0;i<2;i++) curveMesh([[(i-0.5)*0.013,-0.096,-0.05],[(i-0.5)*0.013,-0.085,-0.051]],0.00065,dark,leg);
         leg.position.set(side*0.088,0.19,-0.11);
         group.add(leg); return leg;
     };
     P.legFL=makeFront(-1); P.legFR=makeFront(1);
+    const shoulder = new THREE.Vector3(), wrist = new THREE.Vector3(), direction = new THREE.Vector3();
+    const up = new THREE.Vector3(0,1,0);
+    P.updateArms = () => {
+        for (const side of [-1,1]) {
+            const leg = side < 0 ? P.legFL : P.legFR;
+            const arm = side < 0 ? P.armL : P.armR;
+            shoulder.set(side*0.085,0.04,-0.07).applyMatrix4(P.body.matrix);
+            wrist.set(0,-0.045,0).applyEuler(leg.rotation).add(leg.position);
+            direction.subVectors(wrist,shoulder);
+            arm.position.copy(shoulder).add(wrist).multiplyScalar(0.5);
+            arm.quaternion.setFromUnitVectors(up,direction.clone().normalize());
+            arm.scale.set(1,Math.max(0.02,direction.length())/1.062,1);
+        }
+    };
     const makeBack = side => {
         const leg = new THREE.Group();
         sphere(0.074,coat,[0.75,0.88,1.1],[0,0,0],leg,550);

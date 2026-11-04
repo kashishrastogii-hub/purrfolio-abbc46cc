@@ -103,7 +103,7 @@ export function earGeometry() {
 }
 
 export function makeFurryTail(material) {
-    const rings = 44, sides = 10;
+    const rings = 56, sides = 16;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array((rings + 1) * sides * 3);
     const uv = new Float32Array((rings + 1) * sides * 2);
@@ -145,7 +145,8 @@ export function makeFurryTail(material) {
             if (right.lengthSq() < 0.0001) right.set(1, 0, 0);
             right.normalize();
             normal.crossVectors(right, tangent).normalize();
-            const radius = 0.05 * (1 - 0.64 * t) * Math.min(1, (1 - t) * 20 + 0.03);
+            // Broad middle and a gently hooked tapered tip, like the reference plume.
+            const radius = (0.036 + 0.04 * Math.sin(Math.PI * t)) * Math.min(1, (1 - t) * 7 + 0.03);
             for (let j = 0; j < sides; j++) {
                 const a = j / sides * Math.PI * 2;
                 const offset = right.clone().multiplyScalar(Math.cos(a)).addScaledVector(normal, Math.sin(a));
