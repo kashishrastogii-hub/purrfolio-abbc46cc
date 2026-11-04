@@ -785,7 +785,7 @@ export class Room3D {
         const out = [];
         if (mode === "wrap") {
             // Sleeping tail drapes over the seat edge, as in the user's sketch, with a lazy tip sway.
-            const drape = [[-0.08, 0.06, 0.12], [-0.17, 0.03, 0.15], [-0.23, -0.06, 0.16], [-0.25, -0.17, 0.15], [-0.24, -0.27, 0.13], [-0.21, -0.35, 0.11]];
+            const drape = [[0.02, 0.06, 0.14], [0.1, 0.03, 0.21], [0.17, -0.05, 0.25], [0.2, -0.16, 0.26], [0.2, -0.26, 0.25], [0.18, -0.34, 0.23]];
             drape.forEach((d, i) => {
                 const sway = Math.sin(t * 0.9) * 0.02 * Math.max(0, i - 1) / 4;
                 out.push([d[0] + sway, d[1], d[2] + sway * 0.5]);
