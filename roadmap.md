@@ -1,6 +1,10 @@
 # Portfolio import
 
 ## Room updates
+- [ ] Angle the monitor slightly toward the cat while retaining readable text.
+- [ ] Improve the visibility of the buildings outside the window.
+- [ ] Replace the corner lamp with an aesthetic design and give the rug a brown pattern.
+- [ ] Check the updated room and wake-to-typing sequence on desktop and phone.
 - [x] Center the chair, sleeping cat and keyboard in front of a slim, angled monitor.
 - [x] Type the requested introduction, accelerate into random letters, then bang the keyboard.
 - [x] Join a matching left wall to the window wall and widen the bookshelf slightly.
