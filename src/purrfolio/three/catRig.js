@@ -91,24 +91,24 @@ export function buildCat() {
     for (const side of [-1,1]) for (let i=0;i<3;i++) {
         curveMesh([[side*0.029,-0.038+i*0.008,-0.137],[side*0.085,-0.039+i*0.014,-0.135],[side*0.17,-0.055+i*0.03,-0.11]],0.0013,whisker,P.head);
     }
-    P.bow = new THREE.Group();
-    const bowMat = std(C.pink,0.55);
-    const loop = sphere(0.025,bowMat,[1.18,0.65,0.36],[-0.026,0,0],P.bow);
-    loop.rotation.z = -0.23;
-    const loop2 = loop.clone(); loop2.position.x=0.026; loop2.rotation.z=0.23; P.bow.add(loop2);
-    sphere(0.012,bowMat,[1,0.8,0.65],[0,0,-0.004],P.bow);
-    for(const side of [-1,1]) {
-        const ribbon = new THREE.Mesh(new THREE.PlaneGeometry(0.017,0.031),new THREE.MeshStandardMaterial({ color:C.pink,side:THREE.DoubleSide,roughness:0.7 }));
-        ribbon.position.set(side*0.012,-0.024,0.004); ribbon.rotation.z=side*0.25; P.bow.add(ribbon);
-    }
-    P.bow.position.set(0.062,0.091,-0.055);
-    P.bow.rotation.set(-0.25,-0.2,0.15);
-    P.head.add(P.bow);
+    // Teal collar with a small gold bell, riding just under the chin.
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.079, 0.011, 8, 28), std(C.collar, 0.55));
+    collar.position.set(0, -0.085, 0.012);
+    collar.rotation.x = 1.3;
+    P.head.add(collar);
+    const bellMat = new THREE.MeshStandardMaterial({ color: C.bell, roughness: 0.35, metalness: 0.5 });
+    const bell = new THREE.Mesh(new THREE.SphereGeometry(0.014, 16, 12), bellMat);
+    bell.position.set(0, -0.114, -0.052);
+    P.head.add(bell);
+    const slit = new THREE.Mesh(new THREE.BoxGeometry(0.019, 0.0022, 0.0022), std(0x8a6420, 0.5));
+    slit.position.set(0, -0.109, -0.064);
+    slit.rotation.x = -0.5;
+    P.head.add(slit);
     const makeFront = side => {
         const leg = new THREE.Group();
         const upper = new THREE.Mesh(new THREE.CapsuleGeometry(0.033,0.075,8,16),coat);
         upper.position.y=-0.043; upper.castShadow=true; leg.add(upper); groom(upper,380,0.004);
-        const paw = sphere(0.039,coat,[0.95,0.74,1.2],[0,-0.093,-0.018],leg,300);
+        const paw = sphere(0.039,pale,[0.95,0.74,1.2],[0,-0.093,-0.018],leg,300);
         const connector = new THREE.Mesh(new THREE.CapsuleGeometry(0.031,1,6,16),coat);
         connector.castShadow = true;
         group.add(connector);
@@ -136,14 +136,14 @@ export function buildCat() {
     const makeBack = side => {
         const leg = new THREE.Group();
         sphere(0.074,coat,[0.75,0.88,1.1],[0,0,0],leg,550);
-        sphere(0.037,coat,[0.82,0.55,1.4],[0,-0.075,-0.034],leg,180);
+        sphere(0.037,pale,[0.82,0.55,1.4],[0,-0.075,-0.034],leg,180);
         leg.position.set(side*0.102,0.075,0.062); group.add(leg); return leg;
     };
     P.legBL=makeBack(-1); P.legBR=makeBack(1);
     const tailCanvas=document.createElement('canvas'); tailCanvas.width=128; tailCanvas.height=512;
-    const tx=tailCanvas.getContext('2d'); tx.fillStyle='#ab8159'; tx.fillRect(0,0,128,512);
-    for(let i=0;i<9;i++){tx.fillStyle='#5b412c';tx.fillRect(0,i*57+10,128,16);}
-    tx.fillStyle='#4c3828';tx.fillRect(0,470,128,42);
+    const tx=tailCanvas.getContext('2d'); tx.fillStyle='#e0863f'; tx.fillRect(0,0,128,512);
+    for(let i=0;i<9;i++){tx.fillStyle='#b25a1e';tx.fillRect(0,i*57+10,128,16);}
+    tx.fillStyle='#f6e7c8';tx.fillRect(0,466,128,46);
     const tailTex=new THREE.CanvasTexture(tailCanvas);tailTex.colorSpace=THREE.SRGBColorSpace;
     const furryTail=makeFurryTail(furMaterial(tailTex));
     group.add(furryTail.tail); P.tailSegs=furryTail.guides; P.updateTail=furryTail.update;
