@@ -784,12 +784,12 @@ export class Room3D {
     _tailTargets(mode, t) {
         const out = [];
         if (mode === "wrap") {
-            for (let i = 0; i < 6; i++) {
-                const a = 0.55 - i * 0.5;
-                // Sleepy tip flick that grows toward the tail end.
-                const flick = Math.sin(t * 0.9) * 0.018 * Math.max(0, i - 2) / 3;
-                out.push([Math.cos(a) * 0.19 + flick, 0.035, Math.sin(a) * 0.19 + 0.02]);
-            }
+            // Sleeping tail drapes over the seat edge, as in the user's sketch, with a lazy tip sway.
+            const drape = [[-0.08, 0.06, 0.12], [-0.17, 0.03, 0.15], [-0.23, -0.06, 0.16], [-0.25, -0.17, 0.15], [-0.24, -0.27, 0.13], [-0.21, -0.35, 0.11]];
+            drape.forEach((d, i) => {
+                const sway = Math.sin(t * 0.9) * 0.02 * Math.max(0, i - 1) / 4;
+                out.push([d[0] + sway, d[1], d[2] + sway * 0.5]);
+            });
         } else if (mode === "up") {
             for (let i = 0; i < 6; i++)
                 out.push([0.025, 0.095 + i * 0.055, 0.16 + i * 0.019 + Math.sin(t * 3 + i * 0.8) * 0.007]);
