@@ -14,3 +14,4 @@
 - Keep desk alignment and typing timing in the browser-safe typingSequence module, with interaction tests using a mocked scene; this checks progression without requiring WebGL.
 - The canvas host sets data-scene-ready after rendering; dev-only window.__game exposes live scene state and fixed-step pose rendering for reproducible scene checks.
 - Load licensed lamp GLBs through project asset pointers and wait for the lamp before declaring scene readiness; this prevents false-positive checks before models render.
+- Keep kitten grooming and continuous tail geometry in kittenFur while preserving catRig pose controls; kitten-only layer lights leave the room unchanged.
