@@ -6,7 +6,7 @@ describe("Splat keyboard", () => {
     it("is a full classic keyboard with every key staying on the board", () => {
         render(<KeyboardSplat stage="hold" />);
         for (const label of ["Esc", "F1", "F12", "Backspace", "Tab", "Caps", "Enter", "Shift", "Ctrl", "Alt", "Space", "Fn"]) {
-            expect(screen.getByText(label), label).toBeTruthy();
+            expect(screen.getAllByText(label).length, label).toBeGreaterThan(0);
         }
         expect(screen.getByText("Q")).toBeTruthy();
         expect(screen.getByText("Z")).toBeTruthy();
