@@ -373,7 +373,7 @@ export class Room3D {
 
         /* slim flat-screen, slightly cat-facing while still readable */
         const mon = new THREE.Group();
-        const body = new THREE.Mesh(rbox(0.88, 0.57, 0.045, 0.018), std(0x9a9da3, 0.6));
+        const body = new THREE.Mesh(rbox(0.88, 0.57, 0.045, 0.018), std(0xe3d3b3, 0.6));
         body.position.y = 1.14;
         body.castShadow = true;
         mon.add(body);
