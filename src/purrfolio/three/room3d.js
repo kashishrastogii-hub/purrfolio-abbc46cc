@@ -2,8 +2,8 @@ import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { buildCat, POSES } from "./catRig";
 
-const CAM_POS = new THREE.Vector3(2.86, 1.37, -1.6);
-const CAM_TARGET = new THREE.Vector3(-0.2, 0.66, -2.42);
+const CAM_POS = new THREE.Vector3(3.0, 1.55, -1.45);
+const CAM_TARGET = new THREE.Vector3(-0.25, 0.85, -2.45);
 const DIM = { ambient: 0.95, hemi: 0.3, moon: 1.6, lamp: 0.8, fill: 1.3 };
 const LIT = { ambient: 1.7, hemi: 0.75, moon: 1.8, lamp: 16, fill: 2.4 };
 
