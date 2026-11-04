@@ -1,9 +1,9 @@
 # Portfolio import
 
 ## Room updates
-- [ ] Match the plumed right-side tail and reconnect clear typing paws.
-- [ ] Add viewer-facing grab, flight, splat, 1.5-second hold, peeling slide, loose keys and non-glowing glass.
-- [ ] Test throw timing and check the complete flow visually.
+- [x] Match the plumed right-side tail and reconnect clear typing paws.
+- [x] Add viewer-facing grab, flight, splat, 1.5-second hold, peeling slide, loose keys and non-glowing glass.
+- [x] Test throw timing through hold, crack and splat removal (slide/drop completed in-page; headless capture too slow to film the slide itself).
 - [x] Rebuild only the kitten with natural tabby anatomy, fur, face, bow and a continuous furry tail.
 - [x] Preserve sleeping/waking/typing/slamming/throwing behavior and add kitten-only soft lighting.
 - [x] Verify desktop/phone sleeping views, awake keyboard reach, six tests, full tap-to-typing-to-crack flow and clean diagnostics.
