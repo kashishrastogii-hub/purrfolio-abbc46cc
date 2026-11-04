@@ -1,0 +1,164 @@
+{
+  "source": "https://github.com/kashishrastogii-hub/purrfolio",
+  "sourceComparison": "Repository source rendered locally on port 8091; original import case typo corrected for reference rendering. No deployed website was provided.",
+  "controls": [
+    {
+      "origin": "http://localhost:8091",
+      "layout": "source-desktop",
+      "viewport": [
+        1280,
+        1800
+      ],
+      "scrollContainer": "fixed full-browser experience",
+      "scrollPosition": 0,
+      "catTap": [
+        714.5,
+        923.7999877929688
+      ],
+      "wake": "pass",
+      "crack": "pass",
+      "microphoneRecovery": "pass",
+      "liveSpeech": "blocked: headless browser cannot verify recognition service or live microphone",
+      "panelText": "I can't hear you yet\n\nThe microphone is blocked, but it's an easy fix:\n\nClick the lock or microphone icon in your browser's address bar.\nSet Microphone to\nAllow\n.\nCome back, tap the crack, and say hello.\nTry again",
+      "screenshotReferences": [
+        {
+          "artifact": "/tmp/browser/purrfolio/source-desktop-sleep.png",
+          "note": "temporary browser reference"
+        },
+        {
+          "artifact": "/tmp/browser/purrfolio/source-desktop-wake.png",
+          "note": "temporary browser reference"
+        },
+        {
+          "artifact": "/tmp/browser/purrfolio/source-desktop-crack.png",
+          "note": "temporary browser reference"
+        },
+        {
+          "artifact": "/tmp/browser/purrfolio/source-desktop-microphone.png",
+          "note": "temporary browser reference"
+        }
+      ]
+    },
+    {
+      "origin": "http://localhost:8091",
+      "layout": "source-phone",
+      "viewport": [
+        390,
+        844
+      ],
+      "scrollContainer": "fixed full-browser experience",
+      "scrollPosition": 0,
+      "catTap": [
+        224.60000610351562,
+        451.79998779296875
+      ],
+      "wake": "pass",
+      "crack": "pass",
+      "microphoneRecovery": "pass",
+      "liveSpeech": "blocked: headless browser cannot verify recognition service or live microphone",
+      "panelText": "I can't hear you yet\n\nThe microphone is blocked, but it's an easy fix:\n\nClick the lock or microphone icon in your browser's address bar.\nSet Microphone to\nAllow\n.\nCome back, tap the crack, and say hello.\nTry again",
+      "screenshotReferences": [
+        {
+          "artifact": "/tmp/browser/purrfolio/source-phone-sleep.png",
+          "note": "temporary browser reference"
+        },
+        {
+          "artifact": "/tmp/browser/purrfolio/source-phone-wake.png",
+          "note": "temporary browser reference"
+        },
+        {
+          "artifact": "/tmp/browser/purrfolio/source-phone-crack.png",
+          "note": "temporary browser reference"
+        },
+        {
+          "artifact": "/tmp/browser/purrfolio/source-phone-microphone.png",
+          "note": "temporary browser reference"
+        }
+      ]
+    },
+    {
+      "origin": "http://localhost:8080",
+      "layout": "preview-desktop",
+      "viewport": [
+        1280,
+        1800
+      ],
+      "scrollContainer": "fixed full-browser experience",
+      "scrollPosition": 0,
+      "catTap": [
+        714.7999877929688,
+        923.4000244140625
+      ],
+      "wake": "pass",
+      "crack": "pass",
+      "microphoneRecovery": "pass",
+      "liveSpeech": "blocked: headless browser cannot verify recognition service or live microphone",
+      "panelText": "I can't hear you yet\n\nThe microphone is blocked, but it's an easy fix:\n\nClick the lock or microphone icon in your browser's address bar.\nSet Microphone to\nAllow\n.\nCome back, tap the crack, and say hello.\nTry again",
+      "screenshotReferences": [
+        {
+          "artifact": "/tmp/browser/purrfolio/preview-desktop-sleep.png",
+          "note": "temporary browser reference"
+        },
+        {
+          "artifact": "/tmp/browser/purrfolio/preview-desktop-wake.png",
+          "note": "temporary browser reference"
+        },
+        {
+          "artifact": "/tmp/browser/purrfolio/preview-desktop-crack.png",
+          "note": "temporary browser reference"
+        },
+        {
+          "artifact": "/tmp/browser/purrfolio/preview-desktop-microphone.png",
+          "note": "temporary browser reference"
+        }
+      ]
+    },
+    {
+      "origin": "http://localhost:8080",
+      "layout": "preview-phone",
+      "viewport": [
+        390,
+        844
+      ],
+      "scrollContainer": "fixed full-browser experience",
+      "scrollPosition": 0,
+      "catTap": [
+        224.5,
+        451.5
+      ],
+      "wake": "pass",
+      "crack": "pass",
+      "microphoneRecovery": "pass",
+      "liveSpeech": "blocked: headless browser cannot verify recognition service or live microphone",
+      "panelText": "I can't hear you yet\n\nThe microphone is blocked, but it's an easy fix:\n\nClick the lock or microphone icon in your browser's address bar.\nSet Microphone to\nAllow\n.\nCome back, tap the crack, and say hello.\nTry again",
+      "screenshotReferences": [
+        {
+          "artifact": "/tmp/browser/purrfolio/preview-phone-sleep.png",
+          "note": "temporary browser reference"
+        },
+        {
+          "artifact": "/tmp/browser/purrfolio/preview-phone-wake.png",
+          "note": "temporary browser reference"
+        },
+        {
+          "artifact": "/tmp/browser/purrfolio/preview-phone-crack.png",
+          "note": "temporary browser reference"
+        },
+        {
+          "artifact": "/tmp/browser/purrfolio/preview-phone-microphone.png",
+          "note": "temporary browser reference"
+        }
+      ]
+    }
+  ],
+  "replay": "Passed with controlled browser speech callback; not a live microphone test.",
+  "media": "Original procedural Three.js geometry and synthesized Web Audio; no static visual fallbacks. Audio synthesis executes but audible sound was not independently verified.",
+  "notApplicable": [
+    "navigation",
+    "nested menus",
+    "carousels",
+    "scrolling sections",
+    "video"
+  ],
+  "sourceAndPreviewPanels": "Same blocked microphone text and original inline SVG from Experience.jsx; no external panel assets."
+}
