@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { coatTexture, furMaterial, groom, sculptedHead, earGeometry, makeFurryTail } from "./kittenFur";
 
-const C = { fur: 0xb58b5f, cream: 0xe4d0ad, pink: 0xeaa1b0, innerEar: 0xd99798, nose: 0xd58d96, eye: 0x100e0b };
+const C = { fur: 0xd9823f, cream: 0xf6e7c8, pink: 0xf2a8b2, innerEar: 0xf2a8b2, nose: 0xe08e96, eye: 0x2f9e4f, pupil: 0x0d120d, bell: 0xf5c451, collar: 0x3fb3c9, mouth: 0x6b4630 };
 const std = (color, rough = 0.8) => new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0 });
 
 export function buildCat() {
@@ -31,9 +31,9 @@ export function buildCat() {
     P.head.add(skull);
     groom(skull, 3200, 0.008);
     for (const side of [-1, 1]) {
-        sphere(0.044, pale, [0.94, 0.72, 0.79], [side * 0.025, -0.037, -0.106], P.head, 150);
+        sphere(0.048, pale, [0.94, 0.78, 0.82], [side * 0.027, -0.04, -0.104], P.head, 150);
     }
-    sphere(0.032, pale, [1.2, 0.46, 0.76], [0, -0.065, -0.105], P.head);
+    sphere(0.034, pale, [1.2, 0.5, 0.8], [0, -0.068, -0.103], P.head);
     const noseShape = new THREE.Shape();
     noseShape.moveTo(-0.013, 0.003);
     noseShape.quadraticCurveTo(0, 0.012, 0.013, 0.003);
@@ -43,15 +43,11 @@ export function buildCat() {
     P.nose.position.set(0, -0.029, -0.14);
     P.nose.rotation.y = Math.PI;
     P.head.add(P.nose);
-    const dark = std(0x574038, 0.8);
-    const curveMesh = (points, radius, material, parent) => {
-        const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(...p)));
-        const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 14, radius, 4, false), material);
-        parent.add(mesh);
-        return mesh;
-    };
-    curveMesh([[0,-0.038,-0.138],[0,-0.046,-0.14],[-0.012,-0.051,-0.138],[-0.023,-0.045,-0.132]],0.0011,dark,P.head);
-    curveMesh([[0,-0.046,-0.14],[0.012,-0.051,-0.138],[0.023,-0.045,-0.132]],0.0011,dark,P.head);
+    const dark = std(0x6b4630, 0.8);
+    const mouthMat = std(C.mouth, 0.7);
+    // Small "w" mouth under the nose, like the reference kitten.
+    curveMesh([[0,-0.044,-0.139],[-0.006,-0.053,-0.138],[-0.014,-0.046,-0.136]],0.001,mouthMat,P.head);
+    curveMesh([[0,-0.044,-0.139],[0.006,-0.053,-0.138],[0.014,-0.046,-0.136]],0.001,mouthMat,P.head);
     P.jaw = sphere(0.019, std(0x613b34), [1, 0.01, 0.35], [0,-0.058,-0.132], P.head);
     const eyeMat = new THREE.MeshPhysicalMaterial({ color: C.eye, roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.05, metalness: 0.05 });
     P.eyeL = sphere(0.032, eyeMat, [1,1,0.56], [-0.053,0.018,-0.099], P.head);
