@@ -738,6 +738,10 @@ export class Room3D {
         this._raf = requestAnimationFrame(this.loop);
         const dt = Math.min(this.clock.getDelta(), 0.05);
         const t = this.clock.elapsedTime;
+        this.advance(dt, t);
+    }
+
+    advance(dt, t) {
         const k = 1 - Math.exp(-7 * dt);
         const P = this.cat;
         const target = POSES[this.poseName] || POSES.sit;
