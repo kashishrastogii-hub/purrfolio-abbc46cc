@@ -78,8 +78,8 @@ export function buildCat() {
         ear.add(outer);
         groom(outer,350,0.004);
         const inner = new THREE.Mesh(earGeometry(),std(C.innerEar,0.93));
-        inner.scale.set(0.62,0.66,0.12);
-        inner.position.set(0,0.008,-0.015);
+        inner.scale.set(0.55,0.6,0.12);
+        inner.position.set(0,0.007,-0.014);
         ear.add(inner);
         ear.position.set(side*0.079,0.075,-0.006);
         ear.rotation.z = -0.18*side;
