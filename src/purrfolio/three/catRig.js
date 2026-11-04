@@ -1,185 +1,132 @@
 import * as THREE from "three";
+import { coatTexture, furMaterial, groom, sculptedHead, earGeometry, makeFurryTail } from "./kittenFur";
 
-const C = {
-    fur: 0x9a6b42,
-    furDark: 0x6e4a26,
-    cream: 0xead9bd,
-    pink: 0xe87fa0,
-    innerEar: 0xe8a8a0,
-    nose: 0xc96a6a,
-    eye: 0x1d1410,
-};
+const C = { fur: 0xb58b5f, cream: 0xe4d0ad, pink: 0xeaa1b0, innerEar: 0xd99798, nose: 0xd58d96, eye: 0x100e0b };
+const std = (color, rough = 0.8) => new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0 });
 
-const std = (color, rough = 0.8) =>
-    new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0 });
-
-/* fur never renders pitch black in the moody room: faint warm self-glow */
-const furMat = (color, rough = 0.8) => {
-    const m = std(color, rough);
-    m.emissive = new THREE.Color(color === C.cream ? 0x6e5233 : 0x6e4a26);
-    m.emissiveIntensity = color === C.cream ? 0.22 : 0.3;
-    return m;
-};
-
-/* Soft rounded brown tabby kitten with a pink bow — every part is a separate moving piece. */
 export function buildCat() {
     const group = new THREE.Group();
     const P = {};
-
-    P.body = new THREE.Mesh(new THREE.SphereGeometry(0.16, 32, 24), furMat(C.fur));
-    P.body.castShadow = true;
-    P.body.position.set(0, 0.17, 0);
-    P.body.scale.set(1, 0.92, 1.18);
-    group.add(P.body);
-
-    const chest = new THREE.Mesh(new THREE.SphereGeometry(0.105, 24, 18), furMat(C.cream));
-    chest.position.set(0, 0.12, -0.09);
-    chest.scale.set(0.92, 1, 0.72);
-    P.body.add(chest);
-
-    for (let i = 0; i < 3; i++) {
-        const s = new THREE.Mesh(new THREE.SphereGeometry(0.155, 20, 14), furMat(C.furDark));
-        s.scale.set(1.01, 0.16, 0.92);
-        s.position.set(0, 0.04 + i * 0.055, 0.03);
-        P.body.add(s);
-    }
-
+    const coat = furMaterial(coatTexture("body"));
+    const faceCoat = furMaterial(coatTexture("head"));
+    const pale = std(C.cream, 0.98);
+    const sphere = (radius, material, scale, position, parent, fibers = 0) => {
+        const mesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 36, 24), material);
+        mesh.scale.set(...scale);
+        mesh.position.set(...position);
+        mesh.castShadow = true;
+        parent.add(mesh);
+        if (fibers) groom(mesh, fibers);
+        return mesh;
+    };
+    P.body = sphere(0.16, coat, [1, 0.92, 1.18], [0, 0.17, 0], group, 2400);
+    const chest = sphere(0.103, pale, [0.8, 1.18, 0.47], [0, 0.01, -0.122], P.body, 550);
+    // The chest patch sits against the body, rather than a separate protruding ball.
+    chest.rotation.x = -0.15;
     P.head = new THREE.Group();
     P.head.position.set(0, 0.36, -0.1);
     group.add(P.head);
-    const skull = new THREE.Mesh(new THREE.SphereGeometry(0.15, 32, 24), furMat(C.fur));
-    skull.scale.set(1.06, 0.94, 1);
+    const skull = new THREE.Mesh(sculptedHead(), faceCoat);
     skull.castShadow = true;
     P.head.add(skull);
-    for (let i = 0; i < 3; i++) {
-        const s = new THREE.Mesh(new THREE.SphereGeometry(0.148, 18, 12), furMat(C.furDark));
-        s.scale.set(0.11, 0.52, 0.99);
-        s.position.set(-0.05 + i * 0.05, 0.05, 0.004);
-        P.head.add(s);
+    groom(skull, 2000, 0.0055);
+    for (const side of [-1, 1]) {
+        sphere(0.044, pale, [0.94, 0.72, 0.79], [side * 0.025, -0.037, -0.106], P.head, 150);
     }
-    const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.072, 24, 18), furMat(C.cream));
-    muzzle.position.set(0, -0.05, -0.115);
-    muzzle.scale.set(1.2, 0.78, 0.85);
-    P.head.add(muzzle);
-    P.nose = new THREE.Mesh(new THREE.SphereGeometry(0.018, 12, 10), std(C.nose, 0.5));
-    P.nose.position.set(0, -0.012, -0.183);
-    P.nose.scale.set(1.2, 0.8, 0.7);
+    sphere(0.032, pale, [1.2, 0.46, 0.76], [0, -0.065, -0.105], P.head);
+    const noseShape = new THREE.Shape();
+    noseShape.moveTo(-0.013, 0.003);
+    noseShape.quadraticCurveTo(0, 0.012, 0.013, 0.003);
+    noseShape.quadraticCurveTo(0.006, -0.006, 0, -0.009);
+    noseShape.quadraticCurveTo(-0.007, -0.005, -0.013, 0.003);
+    P.nose = new THREE.Mesh(new THREE.ExtrudeGeometry(noseShape, { depth: 0.004, bevelEnabled: true, bevelSize: 0.002, bevelThickness: 0.002, bevelSegments: 2 }), std(C.nose, 0.4));
+    P.nose.position.set(0, -0.029, -0.14);
+    P.nose.rotation.y = Math.PI;
     P.head.add(P.nose);
-    P.jaw = new THREE.Mesh(new THREE.SphereGeometry(0.034, 14, 10), std(0x502c22, 0.7));
-    P.jaw.position.set(0, -0.064, -0.148);
-    P.jaw.scale.set(1.1, 0.01, 0.6);
-    P.head.add(P.jaw);
-
-    const eyeGeo = new THREE.SphereGeometry(0.034, 20, 14);
-    const eyeMat = std(C.eye, 0.25);
-    P.eyeL = new THREE.Mesh(eyeGeo, eyeMat);
-    P.eyeL.position.set(-0.064, 0.012, -0.112);
-    P.eyeL.scale.set(0.9, 1, 0.55);
-    P.eyeR = P.eyeL.clone();
-    P.eyeR.position.x = 0.064;
-    P.head.add(P.eyeL, P.eyeR);
-    const glintMat = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        emissive: 0xffffff,
-        emissiveIntensity: 0.9,
-        roughness: 0.3,
-    });
-    P.glintL = new THREE.Mesh(new THREE.SphereGeometry(0.009, 10, 8), glintMat);
-    P.glintL.position.set(-0.056, 0.03, -0.136);
-    P.glintR = P.glintL.clone();
-    P.glintR.position.x = 0.074;
-    P.head.add(P.glintL, P.glintR);
-
-    const mkEar = (side) => {
-        const g = new THREE.Group();
-        const outer = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.1, 20), furMat(C.fur));
-        outer.position.y = 0.028;
+    const dark = std(0x574038, 0.8);
+    const curveMesh = (points, radius, material, parent) => {
+        const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(...p)));
+        const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 14, radius, 4, false), material);
+        parent.add(mesh);
+        return mesh;
+    };
+    curveMesh([[0,-0.038,-0.138],[0,-0.046,-0.14],[-0.012,-0.051,-0.138],[-0.023,-0.045,-0.132]],0.0011,dark,P.head);
+    curveMesh([[0,-0.046,-0.14],[0.012,-0.051,-0.138],[0.023,-0.045,-0.132]],0.0011,dark,P.head);
+    P.jaw = sphere(0.019, std(0x613b34), [1, 0.01, 0.35], [0,-0.058,-0.132], P.head);
+    const eyeMat = new THREE.MeshPhysicalMaterial({ color: C.eye, roughness: 0.08, clearcoat: 1, clearcoatRoughness: 0.05, metalness: 0.05 });
+    P.eyeL = sphere(0.032, eyeMat, [1,1,0.56], [-0.053,0.018,-0.099], P.head);
+    P.eyeR = sphere(0.032, eyeMat, [1,1,0.56], [0.053,0.018,-0.099], P.head);
+    P.eyeL.rotation.y = 0.22;
+    P.eyeR.rotation.y = -0.22;
+    const glint = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
+    P.glintL = sphere(0.0042, glint, [1,1,0.55],[-0.06,0.027,-0.118],P.head);
+    P.glintR = sphere(0.0042, glint, [1,1,0.55],[0.046,0.027,-0.118],P.head);
+    P.closedEyes = new THREE.Group();
+    P.head.add(P.closedEyes);
+    for (const side of [-1,1]) {
+        curveMesh([[side*0.025,0.007,-0.118],[side*0.051,0.003,-0.123],[side*0.077,0.014,-0.109]],0.0016,dark,P.closedEyes);
+    }
+    const makeEar = side => {
+        const ear = new THREE.Group();
+        const outer = new THREE.Mesh(earGeometry(), coat);
         outer.castShadow = true;
-        const inner = new THREE.Mesh(new THREE.ConeGeometry(0.032, 0.062, 16), std(C.innerEar));
-        inner.position.set(0, 0.02, 0.014);
-        g.add(outer, inner);
-        g.position.set(0.08 * side, 0.115, -0.012);
-        g.rotation.z = -0.24 * side;
-        P.head.add(g);
-        return g;
+        ear.add(outer);
+        groom(outer,350,0.004);
+        const inner = new THREE.Mesh(earGeometry(),std(C.innerEar,0.93));
+        inner.scale.set(0.66,0.68,0.12);
+        inner.position.set(0,0.008,-0.016);
+        ear.add(inner);
+        ear.position.set(side*0.078,0.071,-0.008);
+        ear.rotation.z = -0.2*side;
+        P.head.add(ear);
+        return ear;
     };
-    P.earL = mkEar(-1);
-    P.earR = mkEar(1);
-
-    const wMat = std(0xf0e6d8, 0.5);
-    for (let s = -1; s <= 1; s += 2) {
-        for (let i = 0; i < 3; i++) {
-            const w = new THREE.Mesh(new THREE.CylinderGeometry(0.0022, 0.0022, 0.13, 6), wMat);
-            w.position.set(0.085 * s, -0.05 + i * 0.018, -0.09);
-            w.rotation.z = (Math.PI / 2) * 0.96;
-            w.rotation.y = -0.3 * s;
-            w.rotation.x = (i - 1) * 0.16;
-            P.head.add(w);
-        }
+    P.earL = makeEar(-1); P.earR = makeEar(1);
+    const whisker = new THREE.MeshBasicMaterial({ color: 0xf5eddf });
+    for (const side of [-1,1]) for (let i=0;i<3;i++) {
+        curveMesh([[side*0.029,-0.038+i*0.008,-0.137],[side*0.069,-0.039+i*0.012,-0.135],[side*0.12,-0.051+i*0.023,-0.115]],0.00065,whisker,P.head);
     }
-
     P.bow = new THREE.Group();
-    const bowMat = std(C.pink, 0.55);
-    const loop = new THREE.Mesh(new THREE.SphereGeometry(0.034, 16, 12), bowMat);
-    loop.scale.set(1.25, 0.72, 0.5);
-    loop.position.x = -0.034;
-    const loop2 = loop.clone();
-    loop2.position.x = 0.034;
-    const knot = new THREE.Mesh(new THREE.SphereGeometry(0.02, 14, 10), bowMat);
-    const bowTails = new THREE.Mesh(new THREE.SphereGeometry(0.027, 14, 10), bowMat);
-    bowTails.scale.set(0.85, 0.66, 0.5);
-    bowTails.position.set(0, -0.038, 0.012);
-    P.bow.add(loop, loop2, knot, bowTails);
-    P.bow.position.set(0.078, 0.235, -0.085);
-    P.bow.rotation.set(-0.35, 0.5, 0.1);
-    group.add(P.bow);
-
-    const mkFront = (side) => {
-        const leg = new THREE.Group();
-        const upper = new THREE.Mesh(new THREE.CapsuleGeometry(0.03, 0.08, 6, 12), furMat(C.fur));
-        upper.position.y = -0.045;
-        upper.castShadow = true;
-        const paw = new THREE.Mesh(new THREE.SphereGeometry(0.038, 16, 12), furMat(C.fur));
-        paw.scale.set(1, 0.72, 1.3);
-        paw.position.set(0, -0.095, -0.02);
-        leg.add(upper, paw);
-        leg.position.set(0.088 * side, 0.19, -0.11);
-        group.add(leg);
-        return leg;
-    };
-    P.legFL = mkFront(-1);
-    P.legFR = mkFront(1);
-
-    const mkBack = (side) => {
-        const g = new THREE.Group();
-        const haunch = new THREE.Mesh(new THREE.SphereGeometry(0.078, 18, 14), furMat(C.fur));
-        haunch.scale.set(0.78, 0.95, 1.1);
-        haunch.castShadow = true;
-        const foot = new THREE.Mesh(new THREE.SphereGeometry(0.042, 14, 10), furMat(C.fur));
-        foot.scale.set(0.9, 0.6, 1.4);
-        foot.position.set(0, -0.09, -0.03);
-        g.add(haunch, foot);
-        g.position.set(0.12 * side, 0.09, 0.07);
-        group.add(g);
-        return g;
-    };
-    P.legBL = mkBack(-1);
-    P.legBR = mkBack(1);
-
-    P.tailSegs = [];
-    for (let i = 0; i < 6; i++) {
-        const seg = new THREE.Mesh(
-            new THREE.SphereGeometry(0.046 - i * 0.0028, 14, 10),
-            std(i % 2 ? C.furDark : C.fur)
-        );
-        seg.castShadow = true;
-        P.tailSegs.push(seg);
-        group.add(seg);
+    const bowMat = std(C.pink,0.55);
+    const loop = sphere(0.025,bowMat,[1.18,0.65,0.36],[-0.026,0,0],P.bow);
+    loop.rotation.z = -0.23;
+    const loop2 = loop.clone(); loop2.position.x=0.026; loop2.rotation.z=0.23; P.bow.add(loop2);
+    sphere(0.012,bowMat,[1,0.8,0.65],[0,0,-0.004],P.bow);
+    for(const side of [-1,1]) {
+        const ribbon = new THREE.Mesh(new THREE.PlaneGeometry(0.017,0.031),new THREE.MeshStandardMaterial({ color:C.pink,side:THREE.DoubleSide,roughness:0.7 }));
+        ribbon.position.set(side*0.012,-0.024,0.004); ribbon.rotation.z=side*0.25; P.bow.add(ribbon);
     }
-
-    return { group, P };
+    P.bow.position.set(0.062,0.091,-0.055);
+    P.bow.rotation.set(-0.25,-0.2,0.15);
+    P.head.add(P.bow);
+    const makeFront = side => {
+        const leg = new THREE.Group();
+        const upper = new THREE.Mesh(new THREE.CapsuleGeometry(0.026,0.075,8,16),coat);
+        upper.position.y=-0.043; upper.castShadow=true; leg.add(upper); groom(upper,380,0.004);
+        const paw = sphere(0.035,coat,[0.9,0.68,1.2],[0,-0.093,-0.018],leg,220);
+        for(let i=0;i<2;i++) curveMesh([[(i-0.5)*0.013,-0.096,-0.05],[(i-0.5)*0.013,-0.085,-0.051]],0.00065,dark,leg);
+        leg.position.set(side*0.088,0.19,-0.11);
+        group.add(leg); return leg;
+    };
+    P.legFL=makeFront(-1); P.legFR=makeFront(1);
+    const makeBack = side => {
+        const leg = new THREE.Group();
+        sphere(0.074,coat,[0.75,0.88,1.1],[0,0,0],leg,550);
+        sphere(0.037,coat,[0.82,0.55,1.4],[0,-0.075,-0.034],leg,180);
+        leg.position.set(side*0.102,0.075,0.062); group.add(leg); return leg;
+    };
+    P.legBL=makeBack(-1); P.legBR=makeBack(1);
+    const tailCanvas=document.createElement('canvas'); tailCanvas.width=128; tailCanvas.height=512;
+    const tx=tailCanvas.getContext('2d'); tx.fillStyle='#ab8159'; tx.fillRect(0,0,128,512);
+    for(let i=0;i<9;i++){tx.fillStyle='#5b412c';tx.fillRect(0,i*57+10,128,16);}
+    tx.fillStyle='#4c3828';tx.fillRect(0,470,128,42);
+    const tailTex=new THREE.CanvasTexture(tailCanvas);tailTex.colorSpace=THREE.SRGBColorSpace;
+    const furryTail=makeFurryTail(furMaterial(tailTex));
+    group.add(furryTail.tail); P.tailSegs=furryTail.guides; P.updateTail=furryTail.update;
+    // Lighting layers isolate kitten lighting from all room surfaces.
+    group.traverse(node=>node.layers.set(1));
+    return {group,P};
 }
-
 /* Pose targets: everything is damped toward these every frame. */
 export const POSES = {
     curled: {
