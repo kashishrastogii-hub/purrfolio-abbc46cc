@@ -227,6 +227,7 @@ export default function Experience() {
         setKbThrown(false);
         setCrackOn(false);
         setShake(false);
+        setFlashKey(0);
         setCaption("hint");
         setBubble(null);
         setTalking(false);
