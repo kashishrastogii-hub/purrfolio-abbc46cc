@@ -126,6 +126,7 @@ export class Room3D {
         const warm = new THREE.PointLight(0xffc487, 0.4, 1.8, 2);
         warm.position.set(0.1, 1.15, -2.35);
         const fill = new THREE.HemisphereLight(0xfff1d9, 0x79573d, 1.3);
+        this.kittenLights = [key, warm, fill];
         for (const light of [key, warm, fill]) {
             light.layers.set(1);
             this.scene.add(light);
@@ -950,7 +951,18 @@ export class Room3D {
             this.anchorEl.style.transform = `translate3d(${ax.toFixed(1)}px, ${ay.toFixed(1)}px, 0)`;
         }
 
+        // Three.js light layers filter against the camera, not each mesh.
+        // Render the room first and the kitten into the same depth buffer.
+        this.camera.layers.set(0);
         this.renderer.render(this.scene, this.camera);
+        const background = this.scene.background;
+        this.scene.background = null;
+        this.camera.layers.set(1);
+        this.renderer.autoClear = false;
+        this.renderer.render(this.scene, this.camera);
+        this.renderer.autoClear = true;
+        this.scene.background = background;
+        this.camera.layers.enable(0);
         if (this.lampReady) this.container.dataset.sceneReady = "1";
     }
 }
