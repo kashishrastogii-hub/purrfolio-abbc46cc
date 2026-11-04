@@ -130,6 +130,12 @@ export function makeFurryTail(material) {
     const outer = new THREE.Mesh(geometry.clone(), new THREE.MeshStandardMaterial({ color: 0xb99165, transparent: true, opacity: 0.15, roughness: 1, depthWrite: false, side: THREE.BackSide }));
     outer.frustumCulled = false;
     tail.add(outer);
+    const strandGeo = new THREE.ConeGeometry(0.00065, 0.006, 3);
+    strandGeo.translate(0, 0.003, 0);
+    const strands = new THREE.InstancedMesh(strandGeo, new THREE.MeshStandardMaterial({ color: 0xc19b70, roughness: 1 }), 360);
+    strands.frustumCulled = false;
+    tail.add(strands);
+    const strand = new THREE.Object3D();
     function update() {
         for (let i = 0; i <= rings; i++) {
             const t = i / rings;
@@ -139,7 +145,7 @@ export function makeFurryTail(material) {
             if (right.lengthSq() < 0.0001) right.set(1, 0, 0);
             right.normalize();
             normal.crossVectors(right, tangent).normalize();
-            const radius = 0.027 * (1 - 0.64 * t) * Math.min(1, (1 - t) * 20 + 0.03);
+            const radius = 0.033 * (1 - 0.64 * t) * Math.min(1, (1 - t) * 20 + 0.03);
             for (let j = 0; j < sides; j++) {
                 const a = j / sides * Math.PI * 2;
                 const offset = right.clone().multiplyScalar(Math.cos(a)).addScaledVector(normal, Math.sin(a));
@@ -154,6 +160,15 @@ export function makeFurryTail(material) {
         outer.geometry.attributes.position.needsUpdate = true;
         geometry.computeVertexNormals();
         outer.geometry.computeVertexNormals();
+        for (let i = 0; i < 360; i++) {
+            const index = (i * 127) % ((rings + 1) * sides);
+            strand.position.fromBufferAttribute(geometry.attributes.position, index);
+            normal.fromBufferAttribute(geometry.attributes.normal, index);
+            strand.quaternion.setFromUnitVectors(axis, normal.normalize());
+            strand.updateMatrix();
+            strands.setMatrixAt(i, strand.matrix);
+        }
+        strands.instanceMatrix.needsUpdate = true;
     }
     return { tail, guides, update };
 }
