@@ -15,16 +15,21 @@ export default function Scene3D({
     shake,
     onCatTap,
     bubble,
+    leaving,
+    onExitStage,
 }) {
     const hostRef = useRef(null);
     const anchorRef = useRef(null);
     const modRef = useRef(null);
     const cbRef = useRef(onCatTap);
     cbRef.current = onCatTap;
+    const exitCbRef = useRef(onExitStage);
+    exitCbRef.current = onExitStage;
 
     useEffect(() => {
         const mod = new Room3D(hostRef.current, {
             onCatTap: () => cbRef.current && cbRef.current(),
+            onExitStage: (stage) => exitCbRef.current && exitCbRef.current(stage),
             anchorEl: anchorRef.current,
         });
         modRef.current = mod;
@@ -41,6 +46,9 @@ export default function Scene3D({
                     for (let t = 0; t < seconds; t += 1 / 60) mod.advance(1 / 60, t);
                 },
                 renderPose: (pose, seconds = 1) => { mod.setPose(pose); for(let t=0;t<seconds;t+=1/60) mod.advance(1/60,t); },
+                tap: () => mod.onCatTap && mod.onCatTap(),
+                exit: () => mod.startExit(),
+                exitState: () => ({ stage: mod.exitStage, t: mod.exitT, flap: mod.flapAngle, cat: mod.catGroup.position.toArray(), visible: mod.catGroup.visible }),
             };
         }
         return () => {
@@ -83,6 +91,9 @@ export default function Scene3D({
     useEffect(() => {
         if (shake && modRef.current) modRef.current.shake();
     }, [shake]);
+    useEffect(() => {
+        if (leaving && modRef.current) modRef.current.startExit();
+    }, [leaving]);
 
     return (
         <div className="canvas-host" data-testid="scene-canvas" ref={hostRef}>
@@ -96,7 +107,11 @@ export default function Scene3D({
                 )}
                 {bubble && (
                     <div className={bubble === "sayhello" ? "bubble3d" : "bubble3d wide"} data-testid="cat-bubble">
-                        {bubble === "sayhello" ? "Say hello." : "Good, I can hear you."}
+                        {bubble === "sayhello"
+                            ? "Say hello."
+                            : bubble === "leave"
+                              ? "You can talk to me, no keyboard needed."
+                              : "Good, I can hear you."}
                     </div>
                 )}
             </div>

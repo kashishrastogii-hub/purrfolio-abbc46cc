@@ -65,6 +65,9 @@ export default function Experience() {
     const [talking, setTalking] = useState(false);
     const [transcript, setTranscript] = useState({ final: "", interim: "" });
     const [micBlocked, setMicBlocked] = useState(null);
+    const [leaving, setLeaving] = useState(false);
+    const [crackFading, setCrackFading] = useState(false);
+    const [faded, setFaded] = useState(false);
 
     const timers = useRef([]);
     const phaseRef = useRef(phase);
@@ -91,6 +94,21 @@ export default function Experience() {
             const d = catSpeak(text);
             setTalking(true);
             later(() => setTalking(false), d + 250);
+            return d;
+        },
+        [later]
+    );
+
+    const handleExitStage = useCallback(
+        (stage) => {
+            if (stage === "walk") {
+                setBubble("leave");
+                setTalking(true);
+                later(() => setTalking(false), 2400);
+            } else if (stage === "gone") {
+                setBubble(null);
+                setFaded(true);
+            }
         },
         [later]
     );
@@ -183,7 +201,16 @@ export default function Experience() {
                 setPhase("happy");
                 setEarsFlat(false);
                 happyMrrp();
-                say("Good, I can hear you.");
+                const spoken = say("Good, I can hear you.");
+                // Once the line is out, the crack fades and the cat begins its goodbye walk.
+                later(() => {
+                    setPhase("leaving");
+                    setCaption(null);
+                    setBubble(null);
+                    setCrackFading(true);
+                    setLeaving(true);
+                    later(() => setCrackOn(false), 900);
+                }, spoken + 550);
             }
         },
         onError: () => {
@@ -192,6 +219,12 @@ export default function Experience() {
             setPhase("blocked");
         },
     });
+
+    const stopSpeech = useRef(speech.stop);
+    stopSpeech.current = speech.stop;
+    useEffect(() => {
+        if (leaving) stopSpeech.current();
+    }, [leaving]);
 
     const startListening = useCallback(() => {
         if (!speech.supported) {
@@ -240,6 +273,9 @@ export default function Experience() {
         setTalking(false);
         setTranscript({ final: "", interim: "" });
         setMicBlocked(null);
+        setLeaving(false);
+        setCrackFading(false);
+        setFaded(false);
     };
 
     const showTranscript = ["micwait", "listening", "happy"].includes(phase);
@@ -262,6 +298,8 @@ export default function Experience() {
                     shake={shake}
                     talking={talking}
                     bubble={bubble}
+                    leaving={leaving}
+                    onExitStage={handleExitStage}
                     onCatTap={wake}
                 />
                 <div key={`flash-${flashKey}`} className={"flash" + (flashKey ? " flash-on" : "")} />
@@ -287,8 +325,9 @@ export default function Experience() {
                 )}
             </div>
 
-            {crackOn && <ScreenCrack onTap={splatStage ? undefined : startListening} />}
+            {crackOn && <ScreenCrack fading={crackFading} onTap={splatStage || leaving ? undefined : startListening} />}
             <KeyboardSplat stage={splatStage} />
+            <div className={"exit-black" + (faded ? " on" : "")} data-testid="exit-black" aria-hidden="true" />
 
             <div className="wordmark">
                 <PawPrint /> kashish.types

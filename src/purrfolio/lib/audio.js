@@ -239,6 +239,67 @@ export function keyClatter() {
     }
 }
 
+/* soft floor paw taps while the cat walks */
+export function pawStep() {
+    if (!ready()) return;
+    const t = now();
+    noiseHit({ t0: t, dur: 0.055, f: 720, f1: 260, q: 0.9, g: 0.05, type: "lowpass" });
+    toneHit({ t0: t, type: "sine", f0: 96, f1: 58, dur: 0.09, g: 0.035 });
+}
+
+/* a tiny, gentle meow, quiet enough to sit under room ambience */
+export function smallMeow() {
+    if (!ready()) return;
+    const t = now();
+    const dur = 0.55;
+    const o = ctx.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(430, t);
+    o.frequency.linearRampToValueAtTime(560, t + 0.16);
+    o.frequency.linearRampToValueAtTime(360, t + dur);
+    const vib = ctx.createOscillator();
+    vib.frequency.value = 7;
+    const vibG = ctx.createGain();
+    vibG.gain.setValueAtTime(0, t);
+    vibG.gain.linearRampToValueAtTime(8, t + 0.3);
+    vib.connect(vibG);
+    vibG.connect(o.frequency);
+    const f1 = ctx.createBiquadFilter();
+    f1.type = "bandpass";
+    f1.frequency.setValueAtTime(820, t);
+    f1.frequency.linearRampToValueAtTime(620, t + dur);
+    f1.Q.value = 5;
+    const f2 = ctx.createBiquadFilter();
+    f2.type = "bandpass";
+    f2.frequency.setValueAtTime(1850, t);
+    f2.frequency.linearRampToValueAtTime(1250, t + dur);
+    f2.Q.value = 7;
+    const g1 = ctx.createGain();
+    g1.gain.value = 1;
+    const g2 = ctx.createGain();
+    g2.gain.value = 0.45;
+    const out = ctx.createGain();
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.linearRampToValueAtTime(0.19, t + 0.06);
+    out.gain.linearRampToValueAtTime(0.15, t + 0.32);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    const tame = ctx.createBiquadFilter();
+    tame.type = "lowpass";
+    tame.frequency.value = 2600;
+    o.connect(f1);
+    f1.connect(g1);
+    g1.connect(out);
+    o.connect(f2);
+    f2.connect(g2);
+    g2.connect(out);
+    out.connect(tame);
+    tame.connect(master);
+    o.start(t);
+    o.stop(t + dur + 0.08);
+    vib.start(t);
+    vib.stop(t + dur + 0.08);
+}
+
 /* two happy rising blips */
 export function happyMrrp() {
     if (!ready()) return;

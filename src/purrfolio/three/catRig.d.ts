@@ -16,4 +16,7 @@ export interface CatPose {
     breath: number;
 }
 
-export const POSES: Record<"curled" | "stretch" | "sit" | "turn" | "happy", CatPose>;
+export const POSES: Record<
+    "curled" | "stretch" | "sit" | "turn" | "happy" | "hop" | "stretchFloor" | "walk" | "crouch",
+    CatPose
+>;

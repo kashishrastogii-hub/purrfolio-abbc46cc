@@ -5,11 +5,34 @@ import tabletopLampModel from "@/assets/models/tabletop-lamp.glb.asset.json";
 import { buildCat, POSES } from "./catRig";
 import { DESK_CENTER_X } from "../lib/typingSequence";
 import { FLIGHT_MS, RIGHT_TAIL } from "../lib/keyboardSplat";
+import { pawStep, smallMeow } from "../lib/audio";
 
 const CAM_POS = new THREE.Vector3(2.8, 1.55, -0.95);
 const CAM_TARGET = new THREE.Vector3(-0.25, 0.85, -2.45);
 const DIM = { ambient: 0.95, hemi: 0.3, moon: 1.6, lamp: 0.8, fill: 1.3 };
 const LIT = { ambient: 1.7, hemi: 0.75, moon: 1.8, lamp: 16, fill: 2.4 };
+
+/* The goodbye walk: chair -> floor -> stretch -> across the room -> cat flap. */
+const EXIT = { hop: 0.8, stretch: 2.0, walk: 7.6, door: 8.5, push: 9.4, through: 10.3 };
+const FLAP_REST = -0.12;
+const CHAIR_SPOT = new THREE.Vector3(DESK_CENTER_X, 0.53, -1.81);
+const LAND_SPOT = new THREE.Vector3(-0.32, 0, -1.36);
+const DOOR_SPOT = new THREE.Vector3(1.68, 0, -2.42);
+const WALK_CTRL = new THREE.Vector3(0.92, 0, -1.5);
+const PUSH_SPOT = new THREE.Vector3(1.72, 0, -2.72);
+const GONE_SPOT = new THREE.Vector3(1.72, 0, -3.12);
+
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+const smooth = (v) => {
+    const x = clamp01(v);
+    return x * x * (3 - 2 * x);
+};
+const lerpAngle = (a, b, k) => {
+    let d = (b - a) % (Math.PI * 2);
+    if (d > Math.PI) d -= Math.PI * 2;
+    if (d < -Math.PI) d += Math.PI * 2;
+    return a + d * k;
+};
 
 function canvasTex(w, h, draw) {
     const c = document.createElement("canvas");
@@ -50,10 +73,11 @@ function glowSprite(color, scale, opacity = 0.55) {
 }
 
 export class Room3D {
-    constructor(container, { onCatTap, anchorEl }) {
+    constructor(container, { onCatTap, anchorEl, onExitStage }) {
         this.container = container;
         this.anchorEl = anchorEl;
         this.onCatTap = onCatTap;
+        this.onExitStage = onExitStage;
         this.clock = new THREE.Clock();
         this.cur = this._flatPose(POSES.curled);
         this.poseName = "curled";
@@ -73,6 +97,16 @@ export class Room3D {
         this.throwT = -1;
         this.redrawAcc = 1;
         this.disposed = false;
+
+        this.exitT = -1;
+        this.exitStage = null;
+        this.exitStartYaw = 0;
+        this.walking = false;
+        this.walkPhase = 0;
+        this.pawTimer = 0;
+        this.camFollow = 0;
+        this.flapAngle = FLAP_REST;
+        this.flapVel = 0;
 
         this._build();
         this._bind();
@@ -608,16 +642,18 @@ export class Room3D {
         const knob = new THREE.Mesh(new THREE.SphereGeometry(0.035, 16, 12), new THREE.MeshStandardMaterial({ color: 0xe8b64c, metalness: 0.7, roughness: 0.35 }));
         knob.position.set(-0.31, 1.02, 0.07);
         g.add(knob);
-        // cat flap at the bottom
+        // cat flap at the bottom, hinged at the top so it can swing
         const opening = new THREE.Mesh(rbox(0.4, 0.3, 0.08, 0.05), std(0x241a12, 1));
         opening.position.set(0.02, 0.17, 0.02);
         g.add(opening);
-        this.flap = new THREE.Group();
+        this.flapPivot = new THREE.Group();
         const plate = new THREE.Mesh(rbox(0.36, 0.26, 0.02, 0.04), std(0xa06a42, 0.75));
-        this.flap.add(plate);
-        this.flap.position.set(0.02, 0.19, 0.075);
-        this.flap.rotation.x = -0.12;
-        g.add(this.flap);
+        plate.position.set(0, -0.13, 0);
+        this.flapPivot.add(plate);
+        this.flapPivot.position.set(0.02, 0.33, 0.075);
+        this.flapPivot.rotation.x = FLAP_REST;
+        this.flap = this.flapPivot;
+        g.add(this.flapPivot);
         g.position.set(1.72, 0, -2.9);
         this.scene.add(g);
     }
@@ -737,7 +773,19 @@ export class Room3D {
     }
 
     /* ---------- public api ---------- */
+    startExit() {
+        if (this.exitT >= 0) return;
+        this.exitT = 0;
+        this.exitStartYaw = this.catGroup.rotation.y;
+        this.typing = false;
+        this.frantic = false;
+        this.banging = false;
+        this.earsFlat = false;
+        this.hit.visible = false;
+        this._setExitStage("hop");
+    }
     setPose(p) {
+        if (this.exitT >= 0) return;
         this.poseName = p;
     }
     setTyping(v, frantic) {
@@ -838,6 +886,115 @@ export class Room3D {
         return out.map(([x,y,z]) => [x*Math.cos(angle)-z*Math.sin(angle),y,x*Math.sin(angle)+z*Math.cos(angle)]);
     }
 
+    _setExitStage(stage) {
+        if (this.exitStage === stage) return;
+        this.exitStage = stage;
+        if (stage === "hop") this.poseName = "hop";
+        if (stage === "stretch") this.poseName = "stretchFloor";
+        if (stage === "walk") {
+            this.poseName = "walk";
+            this.walking = true;
+            this.pawTimer = 0;
+            this.walkPhase = 0;
+            smallMeow();
+        }
+        if (stage === "door") {
+            this.poseName = "walk";
+            this.walking = false;
+        }
+        if (stage === "push") {
+            this.poseName = "crouch";
+            this.walking = false;
+        }
+        if (stage === "through") {
+            this.poseName = "crouch";
+            this.flapAngle = 1.12;
+            this.flapVel = -3;
+        }
+        if (stage === "gone") this.catGroup.visible = false;
+        this.onExitStage && this.onExitStage(stage);
+    }
+
+    _advanceExit(dt) {
+        this.exitT += dt;
+        const t = this.exitT;
+        const stage =
+            t < EXIT.hop
+                ? "hop"
+                : t < EXIT.stretch
+                  ? "stretch"
+                  : t < EXIT.walk
+                    ? "walk"
+                    : t < EXIT.door
+                      ? "door"
+                      : t < EXIT.push
+                        ? "push"
+                        : t < EXIT.through
+                          ? "through"
+                          : "gone";
+        if (stage !== this.exitStage) this._setExitStage(stage);
+
+        const G = this.catGroup;
+        if (stage === "hop") {
+            const e = smooth(t / EXIT.hop);
+            G.position.set(
+                CHAIR_SPOT.x + (LAND_SPOT.x - CHAIR_SPOT.x) * e,
+                CHAIR_SPOT.y + (LAND_SPOT.y - CHAIR_SPOT.y) * e + Math.sin(e * Math.PI) * 0.16,
+                CHAIR_SPOT.z + (LAND_SPOT.z - CHAIR_SPOT.z) * e
+            );
+            G.rotation.y = lerpAngle(this.exitStartYaw, Math.PI, e);
+        } else if (stage === "stretch") {
+            G.position.copy(LAND_SPOT);
+            G.rotation.y = lerpAngle(G.rotation.y, Math.PI, 1 - Math.exp(-9 * dt));
+        } else if (stage === "walk") {
+            const e = smooth((t - EXIT.stretch) / (EXIT.walk - EXIT.stretch));
+            const u = 1 - e;
+            G.position.set(
+                u * u * LAND_SPOT.x + 2 * u * e * WALK_CTRL.x + e * e * DOOR_SPOT.x,
+                0,
+                u * u * LAND_SPOT.z + 2 * u * e * WALK_CTRL.z + e * e * DOOR_SPOT.z
+            );
+            const dx = 2 * u * (WALK_CTRL.x - LAND_SPOT.x) + 2 * e * (DOOR_SPOT.x - WALK_CTRL.x);
+            const dz = 2 * u * (WALK_CTRL.z - LAND_SPOT.z) + 2 * e * (DOOR_SPOT.z - WALK_CTRL.z);
+            const yaw = Math.atan2(-dx, -dz);
+            G.rotation.y = lerpAngle(G.rotation.y, yaw, 1 - Math.exp(-7 * dt));
+            this.walkPhase += dt * 9.5;
+            this.pawTimer += dt;
+            if (this.pawTimer > 0.34) {
+                this.pawTimer = 0;
+                pawStep();
+            }
+        } else if (stage === "door") {
+            G.position.copy(DOOR_SPOT);
+            G.rotation.y = lerpAngle(G.rotation.y, 0, 1 - Math.exp(-7 * dt));
+        } else if (stage === "push") {
+            const e = smooth((t - EXIT.door) / (EXIT.push - EXIT.door));
+            G.position.lerpVectors(DOOR_SPOT, PUSH_SPOT, e);
+            G.rotation.y = lerpAngle(G.rotation.y, 0, 1 - Math.exp(-8 * dt));
+            this.flapAngle = FLAP_REST + (1.12 - FLAP_REST) * e;
+        } else if (stage === "through") {
+            const e = smooth((t - EXIT.push) / (EXIT.through - EXIT.push));
+            G.position.lerpVectors(PUSH_SPOT, GONE_SPOT, e);
+            G.rotation.y = lerpAngle(G.rotation.y, 0, 1 - Math.exp(-8 * dt));
+        } else {
+            G.position.copy(GONE_SPOT);
+            G.visible = false;
+        }
+
+        if (stage === "through" || stage === "gone") {
+            // Damped spring: the flap swings back and forth after it is released.
+            const acc = -46 * (this.flapAngle - FLAP_REST) - 6.2 * this.flapVel;
+            this.flapVel += acc * dt;
+            this.flapAngle += this.flapVel * dt;
+        } else if (stage !== "push") {
+            this.flapAngle += (FLAP_REST - this.flapAngle) * (1 - Math.exp(-8 * dt));
+        }
+        if (this.flapPivot) this.flapPivot.rotation.x = this.flapAngle;
+
+        const follow = stage === "walk" || stage === "door" || stage === "push" || stage === "through" || stage === "gone";
+        this.camFollow += ((follow ? 1 : 0) - this.camFollow) * (1 - Math.exp(-1.6 * dt));
+    }
+
     loop() {
         if (this.disposed) return;
         this._raf = requestAnimationFrame(this.loop);
@@ -849,11 +1006,14 @@ export class Room3D {
     advance(dt, t) {
         const k = 1 - Math.exp(-7 * dt);
         const P = this.cat;
+        if (this.exitT >= 0) this._advanceExit(dt);
         const target = POSES[this.poseName] || POSES.sit;
         const cur = this.cur;
         // Preserve the sleeping orientation; face the keyboard only after waking.
-        const facing = this.poseName === "curled" ? -0.55 : 0;
-        this.catGroup.rotation.y += (facing - this.catGroup.rotation.y) * k;
+        if (this.exitT < 0) {
+            const facing = this.poseName === "curled" ? -0.55 : 0;
+            this.catGroup.rotation.y += (facing - this.catGroup.rotation.y) * k;
+        }
 
         for (const key of ["bodyPos", "bodyScale", "headPos"]) {
             for (let i = 0; i < 3; i++) cur[key][i] += (target[key][i] - cur[key][i]) * k;
@@ -922,6 +1082,17 @@ export class Room3D {
         P.legFR.position.set(0.088, 0.19 + cur.pawY + bobR, -0.11 + cur.pawZ);
         P.legFL.rotation.x = cur.pawRotX;
         P.legFR.rotation.x = cur.pawRotX;
+        if (this.walking) {
+            const step = Math.sin(this.walkPhase);
+            P.legFL.position.y += Math.max(0, step) * 0.028;
+            P.legFR.position.y += Math.max(0, -step) * 0.028;
+            P.legFL.position.z += step * 0.03;
+            P.legFR.position.z -= step * 0.03;
+            P.legBL.position.z = 0.062 - step * 0.022;
+            P.legBR.position.z = 0.062 + step * 0.022;
+            P.body.position.y += Math.abs(step) * 0.008;
+            P.head.rotation.z += step * 0.014;
+        }
         if (this.throwT >= 0 && this.throwT < 0.3) {
             const reach = Math.sin(this.throwT/0.3*Math.PI)*0.07;
             P.legFL.position.y += reach;
@@ -994,6 +1165,14 @@ export class Room3D {
         );
         this.camera.position.copy(this.basePos).addScaledVector(dir, this.push).add(sway);
         const tgt = this.baseTarget.clone();
+        if (this.camFollow > 0.001) {
+            // Gently pan with the cat instead of snapping to it.
+            const cp = this.catGroup.position;
+            const focus = new THREE.Vector3(cp.x, Math.max(0.38, cp.y + 0.34), cp.z);
+            tgt.lerp(focus, 0.62 * this.camFollow);
+            this.camera.position.x += (cp.x - this.baseTarget.x) * 0.1 * this.camFollow;
+            this.camera.position.y += 0.03 * this.camFollow;
+        }
         tgt.x += Math.sin(t * 0.3) * 0.012;
         tgt.y += Math.sin(t * 0.42 + 1) * 0.01;
         this.camera.lookAt(tgt);

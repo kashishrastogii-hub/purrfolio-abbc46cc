@@ -31,10 +31,10 @@ const SHARDS = [
 
 const ALL = [...MAIN, ...BRANCH];
 
-export default function ScreenCrack({ onTap }) {
+export default function ScreenCrack({ onTap, fading }) {
     return (
         <svg
-            className="crack-svg"
+            className={"crack-svg" + (fading ? " crack-fading" : "")}
             viewBox="0 0 1920 1080"
             preserveAspectRatio="none"
             data-testid="screen-crack"
