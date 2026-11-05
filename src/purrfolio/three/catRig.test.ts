@@ -17,4 +17,15 @@ describe("Kitten pose behavior", () => {
         expect(paw.z).toBeGreaterThan(-2.24);
         expect(paw.z).toBeLessThan(-2.12);
     });
+    it("greets hello with a cute head tilt and closed eyes", () => {
+        expect(POSES.happy.headRotZ).toBeGreaterThan(0.15);
+        expect(POSES.happy.headRotZ).toBeLessThan(0.35);
+        expect(POSES.happy.eye).toBe(0);
+        expect(POSES.happy.jaw).toBeLessThan(0.3);
+    });
+    it("keeps every other pose head-tilt free", () => {
+        for (const pose of ["curled", "stretch", "sit", "turn"] as const) {
+            expect(POSES[pose].headRotZ).toBe(0);
+        }
+    });
 });
