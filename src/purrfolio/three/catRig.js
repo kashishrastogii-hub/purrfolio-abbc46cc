@@ -106,8 +106,6 @@ export function buildCat() {
     P.head.add(slit);
     const makeFront = side => {
         const leg = new THREE.Group();
-        const upper = new THREE.Mesh(new THREE.CapsuleGeometry(0.033,0.075,8,16),coat);
-        upper.position.y=-0.043; upper.castShadow=true; leg.add(upper); groom(upper,380,0.004);
         const paw = sphere(0.039,pale,[0.95,0.74,1.2],[0,-0.093,-0.018],leg,300);
         const connector = new THREE.Mesh(new THREE.CapsuleGeometry(0.031,1,6,16),coat);
         connector.castShadow = true;
@@ -126,11 +124,14 @@ export function buildCat() {
             const leg = side < 0 ? P.legFL : P.legFR;
             const arm = side < 0 ? P.armL : P.armR;
             shoulder.set(side*0.085,0.04,-0.07).applyMatrix4(P.body.matrix);
-            wrist.set(0,-0.045,0).applyEuler(leg.rotation).add(leg.position);
+            // One continuous limb from shoulder to paw, so the arm stays attached
+            // and can never double up against a second capsule.
+            wrist.set(0,-0.093,-0.018).applyEuler(leg.rotation).add(leg.position);
             direction.subVectors(wrist,shoulder);
-            arm.position.copy(shoulder).add(wrist).multiplyScalar(0.5);
+            const len = Math.max(0.02,direction.length());
+            arm.position.copy(shoulder).addScaledVector(direction,0.5);
             arm.quaternion.setFromUnitVectors(up,direction.clone().normalize());
-            arm.scale.set(1,Math.max(0.02,direction.length())/1.062,1);
+            arm.scale.set(1,len/1.062,1);
         }
     };
     const makeBack = side => {
@@ -160,6 +161,7 @@ export const POSES = {
         headPos: [0.027, 0.091, -0.122],
         headRotX: 0.25,
         headRotY: -0.35,
+        headRotZ: 0,
         eye: 0,
         jaw: 0,
         droop: 1,
@@ -176,6 +178,7 @@ export const POSES = {
         headPos: [0, 0.3, -0.15],
         headRotX: -0.6,
         headRotY: 0,
+        headRotZ: 0,
         eye: 0.55,
         jaw: 1,
         droop: 0,
@@ -192,6 +195,7 @@ export const POSES = {
         headPos: [0, 0.36, -0.1],
         headRotX: 0.16,
         headRotY: 0,
+        headRotZ: 0,
         eye: 1,
         jaw: 0,
         droop: 0,
@@ -208,6 +212,7 @@ export const POSES = {
         headPos: [0, 0.36, -0.1],
         headRotX: 0.02,
         headRotY: 1.0,
+        headRotZ: 0,
         eye: 1.12,
         jaw: 0,
         droop: 0,
@@ -224,8 +229,9 @@ export const POSES = {
         headPos: [0, 0.36, -0.1],
         headRotX: 0.06,
         headRotY: 1.0,
-        eye: 0.12,
-        jaw: 0.45,
+        headRotZ: 0.24,
+        eye: 0,
+        jaw: 0.12,
         droop: 0,
         pawY: 0.13,
         pawZ: -0.11,

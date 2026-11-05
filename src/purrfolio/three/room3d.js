@@ -802,6 +802,7 @@ export class Room3D {
             headPos: [...p.headPos],
             headRotX: p.headRotX,
             headRotY: p.headRotY,
+            headRotZ: p.headRotZ,
             eye: p.eye,
             jaw: p.jaw,
             droop: p.droop,
@@ -857,7 +858,7 @@ export class Room3D {
         for (const key of ["bodyPos", "bodyScale", "headPos"]) {
             for (let i = 0; i < 3; i++) cur[key][i] += (target[key][i] - cur[key][i]) * k;
         }
-        for (const key of ["bodyRotX", "headRotX", "headRotY", "eye", "jaw", "droop", "pawY", "pawZ", "pawRotX", "breath"]) {
+        for (const key of ["bodyRotX", "headRotX", "headRotY", "headRotZ", "eye", "jaw", "droop", "pawY", "pawZ", "pawRotX", "breath"]) {
             cur[key] += (target[key] - cur[key]) * k;
         }
         cur.tail = target.tail;
@@ -875,6 +876,7 @@ export class Room3D {
         P.head.position.set(...cur.headPos);
         P.head.rotation.x = cur.headRotX;
         P.head.rotation.y = cur.headRotY;
+        P.head.rotation.z = cur.headRotZ;
         if (this.throwT >= 0) {
             const viewerAngle = Math.atan2(-(this.camera.position.x-this.catGroup.position.x),-(this.camera.position.z-this.catGroup.position.z));
             P.head.rotation.y = viewerAngle - this.catGroup.rotation.y;

@@ -5,6 +5,7 @@ export interface CatPose {
     headPos: [number, number, number];
     headRotX: number;
     headRotY: number;
+    headRotZ: number;
     eye: number;
     jaw: number;
     droop: number;
